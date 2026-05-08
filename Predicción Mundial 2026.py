@@ -4,15 +4,52 @@ from datetime import datetime
 # --- CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="Simulador Mundial 2026", page_icon="⚽")
 
+# --- SISTEMA DE ACCESO (CONTRASEÑA) ---
+PASSWORD_SECRETA = "Mundial2026"
+
+if "autenticado" not in st.session_state:
+    st.session_state.autenticado = False
+
+if not st.session_state.autenticado:
+    st.title("🔐 Acceso Privado")
+    st.write("Esta aplicación es exclusiva. Por favor, ingresa la clave de acceso.")
+    clave = st.text_input("Contraseña:", type="password")
+    if st.button("Ingresar"):
+        if clave == PASSWORD_SECRETA:
+            st.session_state.autenticado = True
+            st.rerun()
+        else:
+            st.error("❌ Clave incorrecta. Solicítala al administrador.")
+    st.stop()
+
+# --- FUNCIONES ---
 def verificar_fecha_limite():
-    # FECHA LÍMITE: 10 de junio de 2026 a las 23:59:59
     fecha_limite = datetime(2026, 6, 10, 23, 59, 59)
     if datetime.now() > fecha_limite:
         st.error("❌ El plazo para cargar predicciones terminó el 10 de junio.")
         return False
     return True
 
-st.title("⚽ Mis Predicciones - Mundial 2026")
+# --- TÍTULO PERSONALIZADO (ACHICADO Y CON FONDO ARGENTINA) ---
+st.markdown("""
+    <div style="
+        background: linear-gradient(180deg, #74ACDF 30%, #FFFFFF 30%, #FFFFFF 70%, #74ACDF 70%);
+        padding: 10px;
+        border-radius: 10px;
+        border: 2px solid #F6B40E;
+        text-align: center;
+        margin-bottom: 15px;
+    ">
+        <p style="
+            color: #003566;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+            white-space: nowrap;
+            font-family: sans-serif;
+        ">⚽ Mis Predicciones - Mundial 2026 🇦🇷</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 if verificar_fecha_limite():
     mundial_2026 = {
@@ -34,7 +71,6 @@ if verificar_fecha_limite():
 
     clasificados_finales = {}
 
-    # Desplegables por zona
     for nombre_zona, equipos in mundial_2026.items():
         equipos_str = ", ".join(equipos)
         with st.expander(f"{nombre_zona} ({equipos_str})"):
@@ -61,16 +97,13 @@ if verificar_fecha_limite():
 
     st.write("---")
     
-    # --- CAMPO DE NOMBRE ---
     nombre_usuario = st.text_input("✍️ Escribe tu nombre para el resumen:", placeholder="Ej: Fabio")
 
     if st.button("🏆 FINALIZAR Y COMPARTIR"):
         if len(clasificados_finales) == 12:
             st.success("✅ ¡Simulación Completa!")
-            
             autor = nombre_usuario if nombre_usuario else "Invitado"
             
-            # Formatear el texto para compartir
             resumen_texto = f"⚽ PREDICCIONES MUNDIAL 2026 🏆\n"
             resumen_texto += f"👤 Usuario: {autor}\n"
             resumen_texto += "--------------------------------\n"
