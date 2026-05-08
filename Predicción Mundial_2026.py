@@ -5,7 +5,6 @@ from datetime import datetime
 st.set_page_config(page_title="Simulador Mundial 2026", page_icon="⚽")
 
 # --- SISTEMA DE ACCESO (CONTRASEÑA) ---
-# Cambia "Mundial2026" por la clave que quieras darle a tus compañeros
 PASSWORD_SECRETA = "Mundial2026"
 
 if "autenticado" not in st.session_state:
@@ -21,10 +20,9 @@ if not st.session_state.autenticado:
             st.rerun()
         else:
             st.error("❌ Clave incorrecta. Solicítala al administrador.")
-    st.stop() # Bloquea el resto de la app hasta que pongan la clave
+    st.stop()
 
-# --- EL RESTO DE TU CÓDIGO (SOLO SE VE SI ESTÁ AUTENTICADO) ---
-
+# --- FUNCIONES ---
 def verificar_fecha_limite():
     fecha_limite = datetime(2026, 6, 10, 23, 59, 59)
     if datetime.now() > fecha_limite:
@@ -32,7 +30,26 @@ def verificar_fecha_limite():
         return False
     return True
 
-st.title("⚽ Mis Predicciones - Mundial 2026")
+# --- TÍTULO PERSONALIZADO (ACHICADO Y CON FONDO ARGENTINA) ---
+st.markdown("""
+    <div style="
+        background: linear-gradient(180deg, #74ACDF 30%, #FFFFFF 30%, #FFFFFF 70%, #74ACDF 70%);
+        padding: 10px;
+        border-radius: 10px;
+        border: 2px solid #F6B40E;
+        text-align: center;
+        margin-bottom: 15px;
+    ">
+        <p style="
+            color: #003566;
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0;
+            white-space: nowrap;
+            font-family: sans-serif;
+        ">⚽ Mis Predicciones - Mundial 2026 🇦🇷</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 if verificar_fecha_limite():
     mundial_2026 = {
