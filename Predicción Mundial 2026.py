@@ -5,85 +5,76 @@ from datetime import datetime
 st.set_page_config(page_title="Simulador Mundial 2026", page_icon="⚽")
 
 def verificar_fecha_limite():
-    # FECHA LÍMITE: 10 de junio de 2026 a las 23:59:59
+    # FECHA LÍMITE: 10 de junio de 2026
     fecha_limite = datetime(2026, 6, 10, 23, 59, 59)
-    fecha_actual = datetime.now()
-    
-    if fecha_actual > fecha_limite:
-        st.error("❌ LO SIENTO: El plazo para cargar predicciones terminó el 10 de junio a las 23:59.")
+    if datetime.now() > fecha_limite:
+        st.error("❌ Plazo terminado el 10 de junio.")
         return False
     return True
 
-st.title("⚽ Simulador Mundial 2026")
+st.title("⚽ Mis Predicciones - Mundial 2026")
 
 if verificar_fecha_limite():
-    # Definición de grupos y zonas
     mundial_2026 = {
-        "ZONA A": ["Mexico", "Sudafrica", "Corea del Sur", "Republica Checa"],
-        "ZONA B": ["Canada", "Bosnia", "Qatar", "Suiza"],
-        "ZONA C": ["Brasil", "Marruecos", "Haiti", "Escocia"],
-        "ZONA D": ["Estados Unidos", "Australia", "Paraguay", "Turquia"],
+        "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
+        "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
+        "ZONA C": ["Brasil", "Marruecos", "Haití", "Escocia"],
+        "ZONA D": ["Estados Unidos", "Australia", "Paraguay", "Turquía"],
         "ZONA E": ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
-        "ZONA F": ["Paises Bajos", "Japon", "Suecia", "Tunez"],
-        "ZONA G": ["Belgica", "Egipto", "Iran", "Nueva Zelanda"],
+        "ZONA F": ["Paises Bajos", "Japón", "Suecia", "Tunez"],
+        "ZONA G": ["Belgica", "Egipto", "Irán", "Nueva Zelanda"],
         "ZONA H": ["España", "Cabo Verde", "Arabia Saudita", "Uruguay"],
         "ZONA I": ["Francia", "Senegal", "Irak", "Noruega"],
         "ZONA J": ["Argentina", "Argelia", "Jordania", "Austria"],
         "ZONA K": ["Portugal", "RD Congo", "Uzbequistan", "Colombia"],
-        "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panama"],
+        "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
     }
     
-    # Zonas habilitadas para terceros
     zonas_terceros = ["ZONA A", "ZONA B", "ZONA C", "ZONA D"]
     st.info(f"💡 **Zonas para Terceros:** {', '.join(zonas_terceros)}")
 
     clasificados_finales = {}
 
-    # Simulación visual por grupos
     for nombre_zona, equipos in mundial_2026.items():
-        es_tercero = " ✅ (Terceros)" if nombre_zona in zonas_terceros else ""
+        # --- AQUÍ AGREGO LOS EQUIPOS ENTRE PARÉNTESIS ---
+        equipos_str = ", ".join(equipos)
+        check = " ✅" if nombre_zona in zonas_terceros else ""
         
-        with st.expander(f"Simular {nombre_zona}{es_tercero}"):
+        with st.expander(f"{nombre_zona} ({equipos_str}){check}"):
             puntos = {equipo: 0 for equipo in equipos}
-            
-            # Partidos dentro del grupo
             for i in range(len(equipos)):
                 for j in range(i + 1, len(equipos)):
                     local, visita = equipos[i], equipos[j]
-                    
-                    res = st.selectbox(
-                        f"Partido: {local} vs {visita}",
-                        ["Pendiente", f"Gana {local}", f"Gana {visita}", "Empate"],
-                        key=f"{nombre_zona}_{local}_{visita}"
-                    )
-                    
+                    res = st.selectbox(f"{local} vs {visita}", 
+                                     ["Pendiente", f"Gana {local}", f"Gana {visita}", "Empate"], 
+                                     key=f"{nombre_zona}_{local}_{visita}")
                     if res == f"Gana {local}": puntos[local] += 3
                     elif res == f"Gana {visita}": puntos[visita] += 3
                     elif res == "Empate":
                         puntos[local] += 1
                         puntos[visita] += 1
             
-            # Tabla ordenada
             tabla = sorted(puntos.items(), key=lambda x: x[1], reverse=True)
-            
-            st.write("---")
-            st.write(f"**Tabla de Posiciones {nombre_zona}:**")
-            for pos, (equipo, pts) in enumerate(tabla, 1):
-                st.write(f"{pos}. {equipo}: {pts} pts")
-            
-            # Guardamos los 2 primeros
             if len(tabla) >= 2:
                 clasificados_finales[nombre_zona] = [tabla[0][0], tabla[1][0]]
 
     st.write("---")
     
-    if st.button("🏆 MOSTRAR TODOS LOS CLASIFICADOS"):
-        if len(clasificados_finales) > 0:
-            st.header("Equipos que pasan a la siguiente ronda")
+    if st.button("🏆 FINALIZAR Y GENERAR RESUMEN"):
+        if len(clasificados_finales) == len(mundial_2026):
+            st.success("¡Predicción completada!")
+            
+            # Crear el texto para compartir
+            texto_compartir = "🏆 MIS CLASIFICADOS MUNDIAL 2026 ⚽\n\n"
+            for zona, equipos in clasificados_finales.items():
+                texto_compartir += f"📍 {zona}: {equipos[0]} y {equipos[1]}\n"
+            
+            st.text_area("Copia este resumen para compartir:", texto_compartir, height=300)
+            
+            # Mostrar visualmente
             cols = st.columns(2)
-            for idx, (grupo, clas) in enumerate(clasificados_finales.items()):
+            for idx, (zona, clas) in enumerate(clasificados_finales.items()):
                 with cols[idx % 2]:
-                    check = " ⭐" if grupo in zonas_terceros else ""
-                    st.success(f"**{grupo}{check}:**\n1. {clas[0]}\n2. {clas[1]}")
+                    st.write(f"**{zona}**: {clas[0]} y {clas[1]}")
         else:
-            st.warning("Completa al menos un grupo para ver resultados.")
+            st.warning(f"Faltan grupos por completar ({len(clasificados_finales)}/12).")
