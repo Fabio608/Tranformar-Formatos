@@ -5,10 +5,10 @@ from datetime import datetime
 st.set_page_config(page_title="Simulador Mundial 2026", page_icon="⚽")
 
 def verificar_fecha_limite():
-    # FECHA LÍMITE: 10 de junio de 2026
+    # FECHA LÍMITE: 10 de junio de 2026 a las 23:59:59
     fecha_limite = datetime(2026, 6, 10, 23, 59, 59)
     if datetime.now() > fecha_limite:
-        st.error("❌ Plazo terminado el 10 de junio.")
+        st.error("❌ El plazo para cargar predicciones terminó el 10 de junio.")
         return False
     return True
 
@@ -30,23 +30,20 @@ if verificar_fecha_limite():
         "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
     }
     
-    zonas_terceros = ["ZONA A", "ZONA B", "ZONA C", "ZONA D"]
-    st.info(f"💡 **Zonas para Terceros:** {', '.join(zonas_terceros)}")
+    st.info("💡 Completa los partidos de cada zona para generar tu resumen final.")
 
     clasificados_finales = {}
 
+    # Desplegables por zona
     for nombre_zona, equipos in mundial_2026.items():
-        # --- AQUÍ AGREGO LOS EQUIPOS ENTRE PARÉNTESIS ---
         equipos_str = ", ".join(equipos)
-        check = " ✅" if nombre_zona in zonas_terceros else ""
-        
-        with st.expander(f"{nombre_zona} ({equipos_str}){check}"):
+        with st.expander(f"{nombre_zona} ({equipos_str})"):
             puntos = {equipo: 0 for equipo in equipos}
             for i in range(len(equipos)):
                 for j in range(i + 1, len(equipos)):
                     local, visita = equipos[i], equipos[j]
-                    res = st.selectbox(f"{local} vs {visita}", 
-                                     ["Pendiente", f"Gana {local}", f"Gana {visita}", "Empate"], 
+                    res = st.selectbox(f"{local} vs {visita}",
+                                     ["Pendiente", f"Gana {local}", f"Gana {visita}", "Empate"],
                                      key=f"{nombre_zona}_{local}_{visita}")
                     if res == f"Gana {local}": puntos[local] += 3
                     elif res == f"Gana {visita}": puntos[visita] += 3
@@ -55,26 +52,34 @@ if verificar_fecha_limite():
                         puntos[visita] += 1
             
             tabla = sorted(puntos.items(), key=lambda x: x[1], reverse=True)
-            if len(tabla) >= 2:
-                clasificados_finales[nombre_zona] = [tabla[0][0], tabla[1][0]]
+            st.write("**Posiciones:**")
+            for pos, (equipo, pts) in enumerate(tabla, 1):
+                st.write(f"{pos}. {equipo}: {pts} pts")
+            
+            if any(p > 0 for p in puntos.values()):
+                clasificados_finales[nombre_zona] = tabla
 
     st.write("---")
     
-    if st.button("🏆 FINALIZAR Y GENERAR RESUMEN"):
-        if len(clasificados_finales) == len(mundial_2026):
-            st.success("¡Predicción completada!")
+    # --- CAMPO DE NOMBRE ---
+    nombre_usuario = st.text_input("✍️ Escribe tu nombre para el resumen:", placeholder="Ej: Fabio")
+
+    if st.button("🏆 FINALIZAR Y COMPARTIR"):
+        if len(clasificados_finales) == 12:
+            st.success("✅ ¡Simulación Completa!")
             
-            # Crear el texto para compartir
-            texto_compartir = "🏆 MIS CLASIFICADOS MUNDIAL 2026 ⚽\n\n"
-            for zona, equipos in clasificados_finales.items():
-                texto_compartir += f"📍 {zona}: {equipos[0]} y {equipos[1]}\n"
+            autor = nombre_usuario if nombre_usuario else "Invitado"
             
-            st.text_area("Copia este resumen para compartir:", texto_compartir, height=300)
+            # Formatear el texto para compartir
+            resumen_texto = f"⚽ PREDICCIONES MUNDIAL 2026 🏆\n"
+            resumen_texto += f"👤 Usuario: {autor}\n"
+            resumen_texto += "--------------------------------\n"
             
-            # Mostrar visualmente
-            cols = st.columns(2)
-            for idx, (zona, clas) in enumerate(clasificados_finales.items()):
-                with cols[idx % 2]:
-                    st.write(f"**{zona}**: {clas[0]} y {clas[1]}")
+            for zona, posiciones in clasificados_finales.items():
+                p1, p2, p3 = posiciones[0][0], posiciones[1][0], posiciones[2][0]
+                resumen_texto += f"📍 {zona}: 1° {p1}, 2° {p2} (3° {p3})\n"
+            
+            st.write(f"### 📝 Resumen de {autor}:")
+            st.text_area("Copia este texto para WhatsApp/Redes:", resumen_texto, height=350)
         else:
             st.warning(f"Faltan grupos por completar ({len(clasificados_finales)}/12).")
