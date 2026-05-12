@@ -20,7 +20,7 @@ st.markdown("""
     
     .texto-titulo {
         color: #003566;
-        font-size: 28px;
+        font-size: 38px;
         font-family: 'Bebas Neue', sans-serif;
         font-weight: bold;
         letter-spacing: 1px;
@@ -95,7 +95,7 @@ if verificar_fecha_limite():
     
     nombre_usuario = st.text_input("✍️ Escribe tu nombre para el resumen:", placeholder="Ej: Fabio")
 
-    if st.button("🏆 Compartir y Generar resumen"):
+    if st.button("🏆 Generar resumen y Compartir"):
         if len(clasificados_finales) == 12:
             st.success("✅ ¡Simulación Completa!")
             autor = nombre_usuario if nombre_usuario else "Invitado"
