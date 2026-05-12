@@ -8,31 +8,34 @@ st.set_page_config(page_title="Simulador Mundial 2026", page_icon="⚽")
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
-# 1. Intentamos obtener la contraseña de los Secrets
+# Intentamos obtener la contraseña de los Secrets, si no existe usamos una fija
+# Esto evita que la app se bloquee si el panel de Streamlit falla
 try:
-    PASSWORD_SECRETA = st.secrets["PASSWORD"]
-except KeyError:
-    st.error("⚠️ Error: No se encontró la clave 'PASSWORD' en los Secrets.")
-    st.stop()
+    PASSWORD_SECRETA = st.secrets.get("PASSWORD", "Mundial2026")
+except Exception:
+    PASSWORD_SECRETA = "Mundial2026"
 
-# 2. Solo si la contraseña existe, mostramos el login
 if not st.session_state.autenticado:
     st.title("🔐 Acceso Privado")
     st.write("Esta aplicación es exclusiva. Por favor, ingresa la clave de acceso.")
-    clave = st.text_input("Contraseña:", type="password")
     
-    if st.button("Ingresar"):
-        # AQUÍ es donde antes daba el NameError
-        if clave == PASSWORD_SECRETA: 
-            st.session_state.autenticado = True
-            st.rerun()
-        else:
-            st.error("❌ Clave incorrecta.")
+    # Usamos un formulario para que sea más robusto al presionar Enter
+    with st.form("login_form"):
+        clave = st.text_input("Contraseña:", type="password")
+        boton_ingresar = st.form_submit_button("Ingresar")
+        
+        if boton_ingresar:
+            if clave == PASSWORD_SECRETA:
+                st.session_state.autenticado = True
+                st.rerun()
+            else:
+                st.error("❌ Clave incorrecta. Inténtalo de nuevo.")
     st.stop()
 
 # --- FUNCIONES ---
 def verificar_fecha_limite():
-    AR = timezone(timedelta(hours=-3))  # UTC-3 Argentina
+    # Ajustamos a la zona horaria de Argentina (donde estás vos)
+    AR = timezone(timedelta(hours=-3))
     fecha_limite = datetime(2026, 6, 10, 23, 59, 59, tzinfo=AR)
     if datetime.now(AR) > fecha_limite:
         st.error("❌ El plazo para cargar predicciones terminó el 10 de junio.")
@@ -43,20 +46,13 @@ def verificar_fecha_limite():
 st.markdown("""
 <div style="
 background: linear-gradient(180deg, #74ACDF 30%, #FFFFFF 30%, #FFFFFF 70%, #74ACDF 70%);
-padding: 10px;
+padding: 15px;
 border-radius: 10px;
 border: 2px solid #F6B40E;
 text-align: center;
-margin-bottom: 15px;
+margin-bottom: 20px;
 ">
-<p style="
-color: #003566;
-font-size: 18px;
-font-weight: bold;
-margin: 0;
-white-space: nowrap;
-font-family: sans-serif;
-">⚽ Mis Predicciones - Mundial 2026 🇦🇷</p>
+<h2 style="color: #003566; margin: 0; font-family: sans-serif;">⚽ Mis Predicciones - Mundial 2026 🇦🇷</h2>
 </div>
 """, unsafe_allow_html=True)
 
@@ -80,66 +76,65 @@ if verificar_fecha_limite():
 
     clasificados_finales = {}
 
+    # Generar grupos
     for nombre_zona, equipos in mundial_2026.items():
-        equipos_str = ", ".join(equipos)
-        with st.expander(f"{nombre_zona} ({equipos_str})"):
+        equipos_str = " - ".join(equipos)
+        with st.expander(f"📍 {nombre_zona} ({equipos_str})"):
             puntos = {equipo: 0 for equipo in equipos}
-            total_partidos = 0
+            total_partidos = 6 # 4 equipos = 6 partidos por zona
             partidos_completados = 0
 
             for i in range(len(equipos)):
                 for j in range(i + 1, len(equipos)):
                     local, visita = equipos[i], equipos[j]
-                    total_partidos += 1
                     res = st.selectbox(
                         f"{local} vs {visita}",
                         ["Pendiente", f"Gana {local}", f"Gana {visita}", "Empate"],
                         key=f"{nombre_zona}_{local}_{visita}"
                     )
+                    
                     if res != "Pendiente":
                         partidos_completados += 1
-                    if res == f"Gana {local}":
-                        puntos[local] += 3
-                    elif res == f"Gana {visita}":
-                        puntos[visita] += 3
-                    elif res == "Empate":
-                        puntos[local] += 1
-                        puntos[visita] += 1
+                        if res == f"Gana {local}":
+                            puntos[local] += 3
+                        elif res == f"Gana {visita}":
+                            puntos[visita] += 3
+                        elif res == "Empate":
+                            puntos[local] += 1
+                            puntos[visita] += 1
 
+            # Tabla de posiciones visual
             tabla = sorted(puntos.items(), key=lambda x: x[1], reverse=True)
-            st.write(f"**Posiciones** ({partidos_completados}/{total_partidos} partidos cargados):")
+            st.write(f"**Posiciones actualizadas:**")
             for pos, (equipo, pts) in enumerate(tabla, 1):
-                st.write(f"{pos}. {equipo}: {pts} pts")
+                icono = "✅" if pos <= 2 else "❌"
+                st.write(f"{pos}. {equipo}: **{pts} pts** {icono if partidos_completados == 6 else ''}")
 
             if partidos_completados == total_partidos:
                 clasificados_finales[nombre_zona] = tabla
 
-    # Barra de progreso
-    zonas_listas = len(clasificados_finales)
-    st.progress(zonas_listas / 12, text=f"Zonas completadas: {zonas_listas}/12")
+    # Barra de progreso general
+    progreso = len(clasificados_finales)
+    st.progress(progreso / 12, text=f"Progreso: {progreso} de 12 grupos completados")
 
     st.write("---")
 
-    nombre_usuario = st.text_input(
-        "✍️ Escribe tu nombre para el resumen:",
-        placeholder="Ej: Fabio"
-    )
+    nombre_usuario = st.text_input("✍️ Tu nombre para el resumen:", placeholder="Ej: Fabio")
 
-    if st.button("🏆 FINALIZAR Y COMPARTIR"):
+    if st.button("🏆 GENERAR RESUMEN FINAL"):
         if len(clasificados_finales) == 12:
             st.success("✅ ¡Simulación Completa!")
             autor = nombre_usuario if nombre_usuario else "Invitado"
+            
             resumen_texto = f"⚽ PREDICCIONES MUNDIAL 2026 🏆\n"
             resumen_texto += f"👤 Usuario: {autor}\n"
             resumen_texto += "--------------------------------\n"
+            
             for zona, posiciones in clasificados_finales.items():
-                p1, p2, p3 = posiciones[0][0], posiciones[1][0], posiciones[2][0]
-                resumen_texto += f"📍 {zona}: 1° {p1}, 2° {p2} (3° {p3})\n"
+                p1, p2 = posiciones[0][0], posiciones[1][0]
+                resumen_texto += f"📍 {zona}: 1° {p1} | 2° {p2}\n"
+            
             st.write(f"### 📝 Resumen de {autor}:")
-            st.text_area(
-                "Copia este texto para WhatsApp/Redes:",
-                resumen_texto,
-                height=350
-            )
+            st.text_area("Copia esto para compartir:", resumen_texto, height=300)
         else:
-            st.warning(f"Faltan grupos por completar ({len(clasificados_finales)}/12).")
+            st.warning(f"Faltan completar {12 - len(clasificados_finales)} grupos para finalizar.")
