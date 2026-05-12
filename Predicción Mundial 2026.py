@@ -7,12 +7,8 @@ st.set_page_config(page_title="Simulador Mundial 2026", page_icon="⚽")
 # --- SISTEMA DE ACCESO ---
 # Crear archivo .streamlit/secrets.toml con: PASSWORD = "Mundial2026"
 # Ese archivo NO sube a GitHub (agregarlo al .gitignore)
-try:
-    PASSWORD_SECRETA = st.secrets["PASSWORD"]
-except KeyError:
-    st.error("⚠️ Error de configuración: La clave 'PASSWORD' no está definida en los Secrets.")
-    st.info("Si estás en Streamlit Cloud, agrégala en Settings -> Secrets. Si es local, revisa el archivo .streamlit/secrets.toml")
-    st.stop()
+PASSWORD_SECRETA = st.secrets["PASSWORD"]
+
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
