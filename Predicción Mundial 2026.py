@@ -5,23 +5,29 @@ from datetime import datetime, timezone, timedelta
 st.set_page_config(page_title="Simulador Mundial 2026", page_icon="⚽")
 
 # --- SISTEMA DE ACCESO ---
-# Crear archivo .streamlit/secrets.toml con: PASSWORD = "Mundial2026"
-# Ese archivo NO sube a GitHub (agregarlo al .gitignore)
-PASSWORD = "Master26"
-
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
 
+# 1. Intentamos obtener la contraseña de los Secrets
+try:
+    PASSWORD_SECRETA = st.secrets["PASSWORD"]
+except KeyError:
+    st.error("⚠️ Error: No se encontró la clave 'PASSWORD' en los Secrets.")
+    st.stop()
+
+# 2. Solo si la contraseña existe, mostramos el login
 if not st.session_state.autenticado:
     st.title("🔐 Acceso Privado")
     st.write("Esta aplicación es exclusiva. Por favor, ingresa la clave de acceso.")
     clave = st.text_input("Contraseña:", type="password")
+    
     if st.button("Ingresar"):
-        if clave == PASSWORD_SECRETA:
+        # AQUÍ es donde antes daba el NameError
+        if clave == PASSWORD_SECRETA: 
             st.session_state.autenticado = True
             st.rerun()
         else:
-            st.error("❌ Clave incorrecta. Solicítala al administrador.")
+            st.error("❌ Clave incorrecta.")
     st.stop()
 
 # --- FUNCIONES ---
