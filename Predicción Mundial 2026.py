@@ -7,7 +7,7 @@ st.set_page_config(page_title="Simulador Mundial 2026", page_icon="⚽")
 # --- SISTEMA DE ACCESO ---
 # Crear archivo .streamlit/secrets.toml con: PASSWORD = "Mundial2026"
 # Ese archivo NO sube a GitHub (agregarlo al .gitignore)
-PASSWORD_SECRETA = st.secrets["PASSWORD"]
+PASSWORD = "Master26"
 
 if "autenticado" not in st.session_state:
     st.session_state.autenticado = False
