@@ -4,7 +4,6 @@ from datetime import datetime
 # --- CONFIGURACIÓN DE PÁGINA ---
 st.set_page_config(page_title="Simulador Mundial 2026", page_icon="⚽")
 
-# --- TÍTULO PERSONALIZADO (GOOGLE FONTS Y ESTILO ARGENTINA) ---
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
@@ -36,9 +35,8 @@ st.markdown("""
     </div>
     """, unsafe_allow_html=True)
 
-# --- FUNCIONES ---
 def verificar_fecha_limite():
-    # Fecha límite: Comienzo del mundial
+    # Fecha límite: Comienzo del mundial (ajustable según calendario oficial)
     fecha_limite = datetime(2026, 6, 10, 23, 59, 59)
     if datetime.now() > fecha_limite:
         st.error("❌ El plazo para cargar predicciones terminó el 10 de junio.")
@@ -102,7 +100,7 @@ if verificar_fecha_limite():
             st.success("✅ ¡Simulación Completa!")
             autor = nombre_usuario if nombre_usuario else "Invitado"
             
-            # Construcción del mensaje de texto
+            # Construcción del mensaje de texto para exportar
             resumen_texto = f"⚽ PREDICCIONES MUNDIAL 2026 🏆\n"
             resumen_texto += f"👤 Usuario: {autor}\n"
             resumen_texto += "--------------------------------\n"
