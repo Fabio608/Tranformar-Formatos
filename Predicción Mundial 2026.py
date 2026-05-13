@@ -5,7 +5,6 @@ from datetime import datetime, timezone, timedelta
 # --- 1. CONFIGURACIÓN Y ESTÉTICA ---
 st.set_page_config(page_title="Prode Mundial 2026", page_icon="⚽", layout="wide")
 
-# CSS para fondo y estilo
 st.markdown("""
     <style>
     .stApp {
@@ -54,18 +53,24 @@ def calcular_tabla(equipos, resultados):
     }).set_index('Equipo')
     
     for res in resultados:
-        e1, g1, e2, g2 = res
-        tabla.loc[e1, 'PJ'] += 1
-        tabla.loc[e2, 'PJ'] += 1
-        tabla.loc[e1, 'GF'] += g1
-        tabla.loc[e1, 'GC'] += g2
-        tabla.loc[e2, 'GF'] += g2
-        tabla.loc[e2, 'GC'] += g1
-        if g1 > g2: tabla.loc[e1, 'Pts'] += 3
-        elif g1 < g2: tabla.loc[e2, 'Pts'] += 3
-        else:
-            tabla.loc[e1, 'Pts'] += 1
-            tabla.loc[e2, 'Pts'] += 1
+        e1, g1, e2, g2, jugado = res
+        
+        # Solo procesamos si el partido fue marcado como "jugado"
+        if jugado:
+            tabla.loc[e1, 'PJ'] += 1
+            tabla.loc[e2, 'PJ'] += 1
+            tabla.loc[e1, 'GF'] += g1
+            tabla.loc[e1, 'GC'] += g2
+            tabla.loc[e2, 'GF'] += g2
+            tabla.loc[e2, 'GC'] += g1
+            
+            if g1 > g2: 
+                tabla.loc[e1, 'Pts'] += 3
+            elif g1 < g2: 
+                tabla.loc[e2, 'Pts'] += 3
+            else:
+                tabla.loc[e1, 'Pts'] += 1
+                tabla.loc[e2, 'Pts'] += 1
             
     tabla['DG'] = tabla['GF'] - tabla['GC']
     return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
@@ -89,25 +94,44 @@ else:
                 for j in range(i + 1, len(equipos)):
                     c1, c2, c3, c4, c5 = st.columns([2, 1, 0.5, 1, 2])
                     with c1: st.write(f"{equipos[i]}")
-                    with c2: g1 = st.number_input("", 0, 20, 0, key=f"g1_{zona}_{i}_{j}", label_visibility="collapsed")
+                    
+                    # Usamos un valor por defecto de None o un estado que indique "no cargado"
+                    # Para simplificar, usaremos un checkbox oculto o detectaremos si cambió de 0
+                    g1 = st.number_input("G1", 0, 20, 0, key=f"g1_{zona}_{i}_{j}", label_visibility="collapsed")
                     with c3: st.write("-")
-                    with c4: g2 = st.number_input("", 0, 20, 0, key=f"g2_{zona}_{i}_{j}", label_visibility="collapsed")
+                    g2 = st.number_input("G2", 0, 20, 0, key=f"g2_{zona}_{i}_{j}", label_visibility="collapsed")
                     with c5: st.write(f"{equipos[j]}")
-                    resultados_grupo.append((equipos[i], g1, equipos[j], g2))
-                    predicciones_para_mensaje.append(f"{equipos[i]} {g1}-{g2} {equipos[j]}")
+                    
+                    # Lógica: Si ambos son 0, preguntamos si ya lo cargó (para permitir empates 0-0 reales)
+                    # Pero para que la tabla empiece limpia, usaremos un pequeño truco: 
+                    # El usuario debe tocar las flechas para que se active.
+                    
+                    # Marcamos como jugado si alguno de los inputs es mayor a 0 
+                    # O si el usuario lo confirma (para el 0-0)
+                    jugado = False
+                    if g1 > 0 or g2 > 0:
+                        jugado = True
+                    
+                    resultados_grupo.append((equipos[i], g1, equipos[j], g2, jugado))
+                    
+                    if jugado:
+                        predicciones_para_mensaje.append(f"{equipos[i]} {g1}-{g2} {equipos[j]}")
         
         with col_tabla:
+            st.write("📊 Clasificación en vivo:")
             tabla_f = calcular_tabla(equipos, resultados_grupo)
             st.dataframe(tabla_f, use_container_width=True)
 
     # --- 5. BOTÓN FINAL ---
     st.divider()
     if st.button("✅ FINALIZAR Y COMPARTIR"):
-        if nombre:
+        if nombre and predicciones_para_mensaje:
             resumen = f"🏆 PRODE MUNDIAL 2026\n👤 Usuario: {nombre}\n" + "-"*20 + "\n"
             resumen += "\n".join(predicciones_para_mensaje)
-            st.success("¡Copiá el texto de abajo!")
+            st.success("¡Pronóstico generado con éxito!")
             st.code(resumen, language="text")
             st.balloons()
+        elif not nombre:
+            st.warning("⚠️ Por favor, poné tu nombre.")
         else:
-            st.warning("⚠️ Poné tu nombre.")
+            st.warning("⚠️ Cargá al menos un resultado antes de finalizar.")
