@@ -1,57 +1,13 @@
 import streamlit as st
-import pandas as pd
-from datetime import datetime, timezone, timedelta
-from streamlit_gsheets import GSheetsConnection
-import urllib.parse
 
-# --- 1. CONFIGURACIÓN ---
-st.set_page_config(page_title="Prode Mundial 2026", page_icon="⚽")
+# --- 1. CONFIGURACIÓN DE PÁGINA ---
+st.set_page_config(page_title="Generador de Prode 2026", page_icon="⚽")
 
-st.markdown("<h1 style='text-align: center;'>⚽ Prode Mundial 2026</h1>", unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>⚽ Mi Pronóstico Mundial 2026</h1>", unsafe_allow_html=True)
+st.write("Completá tus resultados y copialos para enviarlos al grupo.")
 
-# --- 2. CONEXIÓN A BASE DE DATOS ---
-try:
-    conn = st.connection("gsheets", type=GSheetsConnection)
-    # Intentamos leer la hoja "Resultados" (asegúrate de que exista en tu Excel)
-    df_data = conn.read(worksheet="Resultados")
-except Exception as e:
-    df_data = pd.DataFrame(columns=["Usuario", "Puntos", "Aciertos_Exactos"])
-    st.sidebar.warning("⚠️ Base de datos no conectada (Modo Prueba)")
-
-# --- 3. LÓGICA DE TIEMPO (Argentina UTC-3) ---
-AR = timezone(timedelta(hours=-3))
-fecha_limite = datetime(2026, 6, 10, 23, 59, 59, tzinfo=AR)
-ahora = datetime.now(AR)
-tiempo_restante = fecha_limite - ahora
-
-# --- 4. MENÚ ---
-menu = ["📊 Tabla y Premios", "📝 Cargar Pronósticos", "⚙️ Configuración"]
-choice = st.sidebar.selectbox("Menú", menu)
-
-if choice == "📊 Tabla y Premios":
-    st.header("🏆 Ranking del Grupo")
-    st.info("🎁 **PREMIO:** Un asado completo para el ganador.")
-    
-    if not df_data.empty:
-        # Ordenamos por puntos y luego por aciertos exactos
-        df_ranking = df_data.sort_values(by=["Puntos", "Aciertos_Exactos"], ascending=False).reset_index(drop=True)
-        df_ranking.index += 1
-        st.table(df_ranking)
-    else:
-        st.write("Aún no hay puntos cargados.")
-
-    st.markdown("<p style='font-size: 0.8rem; color: gray;'><b>⚖️ Desempate:</b> 1. Marcadores exactos | 2. Ganadores acertados | 3. Fecha de envío.</p>", unsafe_allow_html=True)
-
-elif choice == "📝 Cargar Pronósticos":
-    st.header("📝 Tus Predicciones")
-    
-    if ahora > fecha_limite:
-        st.error("❌ El plazo terminó el 10 de junio.")
-    else:
-        st.warning(f"⏳ Tienes tiempo hasta el 10 de junio (Faltan {tiempo_restante.days} días).")
-        nombre = st.text_input("Tu Nombre:")
-        
-        mundial = {
+# --- 2. DATOS DEL MUNDIAL (Podés agregar más grupos) ---
+mundial = {
         "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
         "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
         "ZONA C": ["Brasil", "Marruecos", "Haití", "Escocia"],
@@ -65,47 +21,58 @@ elif choice == "📝 Cargar Pronósticos":
         "ZONA K": ["Portugal", "RD Congo", "Uzbekistán", "Colombia"],
         "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
     }
+
+# --- 3. FORMULARIO DE PREDICCIÓN ---
+nombre = st.text_input("👤 Tu Nombre / Apodo:", placeholder="Ej: Juan_Gis")
+
+predicciones_texto = []
+
+for zona, equipos in mundial.items():
+    with st.expander(f"📅 {zona}", expanded=True):
+        for i in range(len(equipos)):
+            for j in range(i + 1, len(equipos)):
+                col1, col2, col3, col4, col5 = st.columns([2, 1, 1, 1, 2])
+                
+                with col1:
+                    st.write(f"**{equipos[i]}**")
+                with col2:
+                    goles_l = st.number_input("Goles", min_value=0, max_value=20, step=1, key=f"L_{zona}_{i}_{j}", label_visibility="collapsed")
+                with col3:
+                    st.write("vs")
+                with col4:
+                    goles_v = st.number_input("Goles", min_value=0, max_value=20, step=1, key=f"V_{zona}_{i}_{j}", label_visibility="collapsed")
+                with col5:
+                    st.write(f"**{equipos[j]}**")
+                
+                # Guardamos el formato para el mensaje final
+                predicciones_texto.append(f"🔹 {equipos[i]} {goles_l} - {goles_v} {equipos[j]}")
+
+# --- 4. GENERACIÓN DEL MENSAJE PARA WHATSAPP ---
+st.divider()
+
+if st.button("🚀 GENERAR MENSAJE PARA COPIAR"):
+    if nombre:
+        # Armamos el bloque de texto final
+        mensaje_final = f"🏆 *PRODE MUNDIAL 2026*\n\n"
+        mensaje_final += f"👤 *Usuario:* {nombre}\n"
+        mensaje_final += "--------------------------\n"
+        mensaje_final += "\n".join(predicciones_texto)
+        mensaje_final += "\n\n--------------------------\n"
+        mensaje_final += "✅ _Enviado desde la App de Prode_"
+
+        # Mostramos el resultado en un cuadro de texto fácil de copiar
+        st.subheader("📋 Copiá este mensaje:")
+        st.code(mensaje_final, language="text")
         
-        # Diccionario para capturar las predicciones
-        predicciones = {}
+        st.success("¡Listo! Copiá el texto de arriba y pegalo en el chat de tus amigos.")
+        st.balloons()
+    else:
+        st.error("⚠️ Por favor, poné tu nombre antes de generar el mensaje.")
 
-        for zona, equipos in mundial.items():
-            with st.expander(f"⚽ {zona}"):
-                for i in range(len(equipos)):
-                    for j in range(i + 1, len(equipos)):
-                        c1, c2, c3 = st.columns([2, 1, 2])
-                        with c1: st.write(equipos[i])
-                        with c2: 
-                            resultado = st.selectbox("vs", ["-", "Gana L", "Empate", "Gana V"], key=f"{zona}_{i}_{j}")
-                            predicciones[f"{equipos[i]} vs {equipos[j]}"] = resultado
-                        with c3: st.write(equipos[j])
-
-        if st.button("✅ ENVIAR RESULTADOS"):
-            if nombre and not any(v == "-" for v in predicciones.values()):
-                try:
-                    # Creamos un DataFrame con el nombre y sus predicciones
-                    nueva_entrada = {"Usuario": nombre, "Puntos": 0, "Aciertos_Exactos": 0}
-                    nueva_entrada.update(predicciones)
-                    
-                    df_nuevo = pd.DataFrame([nueva_entrada])
-                    
-                    # Combinamos con los datos existentes
-                    df_actualizado = pd.concat([df_data, df_nuevo], ignore_index=True)
-                    
-                    # Guardamos en Google Sheets
-                    conn.update(worksheet="Resultados", data=df_actualizado)
-                    
-                    st.success(f"¡{nombre}, tus predicciones han sido guardadas!")
-                    st.balloons()
-                except Exception as e:
-                    st.error(f"Error al guardar: {e}")
-            elif not nombre:
-                st.error("Por favor, ingresa tu nombre.")
-            else:
-                st.error("Por favor, completa todos los partidos.")
-
-# --- COMPARTIR ---
-st.sidebar.write("---")
-link = "https://tu-app.streamlit.app"
-msg = urllib.parse.quote(f"¡Unite al Prode! {link}")
-st.sidebar.markdown(f'<a href="https://wa.me/?text={msg}" target="_blank">📲 Invitar Amigos</a>', unsafe_allow_html=True)
+# --- INFO DE PUNTOS ---
+st.sidebar.header("Reglas Sugeridas")
+st.sidebar.write("""
+- **3 Puntos:** Resultado exacto.
+- **1 Punto:** Acertar ganador o empate (pero no el marcador).
+- **0 Puntos:** No acertar nada.
+""")
