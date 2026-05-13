@@ -1,3 +1,10 @@
+¡Perfecto! Vamos a darle el toque final de legibilidad. Para que las letras sean realmente visibles, aumentaremos el tamaño de los nombres de los equipos, los pondremos en negrita y les daremos un color oscuro que resalte bien sobre el fondo claro.
+
+También ajusté el tamaño del guion central y los números para que todo tenga una armonía visual "pro".
+
+Aquí tenés el código definitivo:
+
+Pitón
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
@@ -5,7 +12,7 @@ from datetime import datetime, timezone, timedelta
 # --- 1. CONFIGURACIÓN Y ESTÉTICA ---
 st.set_page_config(page_title="Prode Mundial 2026", page_icon="⚽", layout="wide")
 
-# CSS Ajustado para quitar botones + y - y achicar más el cuadro
+# CSS Final: Letras grandes, negritas y legibles
 st.markdown("""
     <style>
     .stApp {
@@ -14,36 +21,54 @@ st.markdown("""
         background-attachment: fixed;
     }
     .main .block-container {
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.92);
         border-radius: 20px;
-        padding: 30px;
-        margin-top: 50px;
+        padding: 40px;
+        margin-top: 30px;
+        box-shadow: 0px 4px 15px rgba(0,0,0,0.3);
     }
     
+    /* ESTILO DE LOS NOMBRES DE EQUIPOS */
+    .nombre-equipo {
+        font-size: 1.2rem !important;
+        font-weight: 800 !important;
+        color: #000000 !important;
+        margin-top: 5px;
+    }
+
     /* ELIMINA LOS BOTONES + y - */
     button.step-up, button.step-down {
         display: none !important;
     }
     
-    /* ACHICA EL CUADRO Y CENTRA EL NÚMERO */
+    /* CUADRO DE GOLES MÁS VISIBLE */
     div[data-testid="stNumberInput"] {
-        width: 45px !important;
+        width: 55px !important;
         margin: 0 auto;
     }
     
     div[data-testid="stNumberInput"] div[data-baseweb="input"] {
-        background-color: #f0f2f6 !important;
-        border-radius: 5px !important;
+        background-color: #ffffff !important;
+        border: 2px solid #1a472a !important;
+        border-radius: 8px !important;
     }
 
     input {
         text-align: center !important;
-        padding: 5px !important;
-        font-size: 1.2rem !important;
-        font-weight: bold !important;
+        font-size: 1.4rem !important;
+        font-weight: 900 !important;
+        color: #1a472a !important;
     }
     
-    h1 { color: #1a472a; text-align: center; }
+    .guion {
+        font-size: 1.5rem;
+        font-weight: bold;
+        text-align: center;
+        margin-top: 5px;
+    }
+
+    h1 { color: #1a472a; text-align: center; font-weight: 900; font-size: 3rem !important; }
+    h3 { color: #1a472a; font-weight: 800; border-bottom: 2px solid #1a472a; padding-bottom: 5px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -97,37 +122,41 @@ def calcular_tabla(equipos, resultados):
 if ahora > fecha_limite:
     st.error("❌ El plazo de entrega finalizó.")
 else:
-    st.info(f"⏳ Tienes tiempo hasta el 10 de junio. Faltan: {tiempo_restante.days} días.")
-    nombre = st.text_input("👤 Tu Nombre:")
+    st.markdown(f"**⏳ Tiempo restante:** {tiempo_restante.days} días para el cierre.")
+    nombre = st.text_input("👤 Tu Nombre / Apodo:", placeholder="Escribí acá tu nombre...")
 
     predicciones_para_mensaje = []
 
     for zona, equipos in mundial.items():
         st.subheader(f"📅 {zona}")
-        col_partidos, col_tabla = st.columns([1.2, 1])
+        col_partidos, col_tabla = st.columns([1.3, 1])
         resultados_grupo = []
         
         with col_partidos:
             for i in range(len(equipos)):
                 for j in range(i + 1, len(equipos)):
-                    # Columnas optimizadas
-                    c1, c2, c3, c4, c5 = st.columns([2, 0.6, 0.2, 0.6, 2])
-                    with c1: st.markdown(f"<p style='text-align:right; margin-top:5px;'>{equipos[i]}</p>", unsafe_allow_html=True)
-                    with c2: g1 = st.number_input("", 0, 20, 0, key=f"g1_{zona}_{i}_{j}", label_visibility="collapsed")
-                    with c3: st.markdown("<p style='text-align:center; margin-top:5px;'>-</p>", unsafe_allow_html=True)
-                    with c4: g2 = st.number_input("", 0, 20, 0, key=f"g2_{zona}_{i}_{j}", label_visibility="collapsed")
-                    with c5: st.markdown(f"<p style='text-align:left; margin-top:5px;'>{equipos[j]}</p>", unsafe_allow_html=True)
+                    c1, c2, c3, c4, c5 = st.columns([2, 0.7, 0.3, 0.7, 2])
                     
-                    # Detectar si el usuario escribió algo (incluso 0)
+                    with c1: 
+                        st.markdown(f"<p class='nombre-equipo' style='text-align:right;'>{equipos[i]}</p>", unsafe_allow_html=True)
+                    with c2: 
+                        g1 = st.number_input("", 0, 20, 0, key=f"g1_{zona}_{i}_{j}", label_visibility="collapsed")
+                    with c3: 
+                        st.markdown("<p class='guion'>-</p>", unsafe_allow_html=True)
+                    with c4: 
+                        g2 = st.number_input("", 0, 20, 0, key=f"g2_{zona}_{i}_{j}", label_visibility="collapsed")
+                    with c5: 
+                        st.markdown(f"<p class='nombre-equipo' style='text-align:left;'>{equipos[j]}</p>", unsafe_allow_html=True)
+                    
                     jugado = (g1 > 0 or g2 > 0)
                     resultados_grupo.append((equipos[i], g1, equipos[j], g2, jugado))
                     if jugado:
                         predicciones_para_mensaje.append(f"{equipos[i]} {g1}-{g2} {equipos[j]}")
         
         with col_tabla:
-            st.write("📊 Clasificación:")
+            st.markdown("**📊 Tabla de Posiciones**")
             tabla_f = calcular_tabla(equipos, resultados_grupo)
-            st.dataframe(tabla_f, use_container_width=True)
+            st.dataframe(tabla_f.style.highlight_max(axis=0, subset=['Pts'], color='#d4edda'), use_container_width=True)
 
     # --- 5. BOTÓN FINAL ---
     st.divider()
@@ -135,10 +164,10 @@ else:
         if nombre and predicciones_para_mensaje:
             resumen = f"🏆 PRODE MUNDIAL 2026\n👤 Usuario: {nombre}\n" + "-"*20 + "\n"
             resumen += "\n".join(predicciones_para_mensaje)
-            st.success("¡Pronóstico generado con éxito!")
+            st.success("¡Excelente! Copiá el texto de abajo y mandalo al grupo:")
             st.code(resumen, language="text")
             st.balloons()
         elif not nombre:
-            st.warning("⚠️ Por favor, poné tu nombre.")
+            st.warning("⚠️ ¡No te olvides de poner tu nombre arriba!")
         else:
-            st.warning("⚠️ Cargá al menos un resultado.")
+            st.warning("⚠️ Tenés que completar al menos un resultado.")
