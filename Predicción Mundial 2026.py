@@ -4,123 +4,108 @@ from datetime import datetime, timezone, timedelta
 from streamlit_gsheets import GSheetsConnection
 import urllib.parse
 
-# --- 1. CONFIGURACIÓN E INTERFAZ ---
-st.set_page_config(page_title="Prode Mundial 2026", page_icon="⚽", layout="centered")
+# --- 1. CONFIGURACIÓN ---
+st.set_page_config(page_title="Prode Mundial 2026", page_icon="⚽")
 
-# Estilo de Título
-st.markdown("""
-    <div style='text-align: center;'>
-        <h1 style='color: #003566;'>⚽ Prode Mundial 2026</h1>
-        <p style='color: #74ACDF; font-weight: bold;'>Comodoro Rivadavia - Grupo Oficial</p>
-    </div>
-    """, unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>⚽ Prode Mundial 2026</h1>", unsafe_allow_html=True)
 
-# --- 2. BASE DE DATOS (GOOGLE SHEETS) ---
+# --- 2. CONEXIÓN A BASE DE DATOS ---
 try:
     conn = st.connection("gsheets", type=GSheetsConnection)
-    df_data = conn.read()
-except:
-    # Datos de respaldo si la conexión falla o no está configurada
+    # Intentamos leer la hoja "Resultados" (asegúrate de que exista en tu Excel)
+    df_data = conn.read(worksheet="Resultados")
+except Exception as e:
     df_data = pd.DataFrame(columns=["Usuario", "Puntos", "Aciertos_Exactos"])
+    st.sidebar.warning("⚠️ Base de datos no conectada (Modo Prueba)")
 
-# --- 3. LÓGICA DE FECHA LÍMITE ---
+# --- 3. LÓGICA DE TIEMPO (Argentina UTC-3) ---
 AR = timezone(timedelta(hours=-3))
 fecha_limite = datetime(2026, 6, 10, 23, 59, 59, tzinfo=AR)
 ahora = datetime.now(AR)
 tiempo_restante = fecha_limite - ahora
 
-# --- 4. PERSISTENCIA DE DATOS DEL GRUPO ---
-if 'nombre_grupo' not in st.session_state:
-    st.session_state['nombre_grupo'] = "Los Pibes del WhatsApp"
-if 'premio' not in st.session_state:
-    st.session_state['premio'] = "Un asado completo para el ganador"
+# --- 4. MENÚ ---
+menu = ["📊 Tabla y Premios", "📝 Cargar Pronósticos", "⚙️ Configuración"]
+choice = st.sidebar.selectbox("Menú", menu)
 
-# --- 5. MENÚ LATERAL ---
-st.sidebar.header("Menú del Torneo")
-menu = ["📊 Tabla y Premios", "📝 Cargar Pronósticos", "⚙️ Configuración Grupo"]
-choice = st.sidebar.selectbox("Seleccioná una sección:", menu)
-
-# --- SECCIÓN: CONFIGURACIÓN (ADMIN) ---
-if choice == "⚙️ Configuración Grupo":
-    st.header("⚙️ Configuración del Grupo")
-    st.session_state['nombre_grupo'] = st.text_input("Nombre del Grupo:", st.session_state['nombre_grupo'])
-    st.session_state['premio'] = st.text_area("Premio en juego:", st.session_state['premio'])
+if choice == "📊 Tabla y Premios":
+    st.header("🏆 Ranking del Grupo")
+    st.info("🎁 **PREMIO:** Un asado completo para el ganador.")
     
-    if st.button("Guardar Cambios"):
-        st.success("¡Configuración actualizada para todos!")
-
-# --- SECCIÓN: TABLA Y PREMIOS ---
-elif choice == "📊 Tabla y Premios":
-    st.header(f"🏆 Ranking: {st.session_state['nombre_grupo']}")
-    
-    # Cuadro de Premio
-    st.info(f"🎁 **EL PREMIO ES:** {st.session_state['premio']}")
-    
-    # Tabla de Posiciones
-    st.subheader("Tabla General")
     if not df_data.empty:
+        # Ordenamos por puntos y luego por aciertos exactos
         df_ranking = df_data.sort_values(by=["Puntos", "Aciertos_Exactos"], ascending=False).reset_index(drop=True)
         df_ranking.index += 1
         st.table(df_ranking)
     else:
-        st.write("Aún no hay puntos registrados. ¡A cargar las predicciones!")
+        st.write("Aún no hay puntos cargados.")
 
-    # Letra Chica
-    st.markdown(f"""
-    ---
-    <div style='background-color: #f0f2f6; padding: 10px; border-radius: 5px; font-size: 0.8rem;'>
-        <b>⚖️ MÉTODO DE DESEMPATE:</b><br>
-        1. Mayor cantidad de marcadores exactos acertados.<br>
-        2. Mayor cantidad de ganadores acertados.<br>
-        3. Fecha y hora de envío (quien cargó primero tiene prioridad).
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 0.8rem; color: gray;'><b>⚖️ Desempate:</b> 1. Marcadores exactos | 2. Ganadores acertados | 3. Fecha de envío.</p>", unsafe_allow_html=True)
 
-# --- SECCIÓN: CARGAR PRONÓSTICOS ---
 elif choice == "📝 Cargar Pronósticos":
     st.header("📝 Tus Predicciones")
     
     if ahora > fecha_limite:
-        st.error(f"❌ El tiempo expiró el 10 de junio a las 23:59. Ya no se pueden modificar los resultados.")
+        st.error("❌ El plazo terminó el 10 de junio.")
     else:
-        st.warning(f"⏳ Quedan {tiempo_restante.days} días para el cierre.")
-        
-        nombre_usuario = st.text_input("Ingresá tu Nombre o Apodo:")
+        st.warning(f"⏳ Tienes tiempo hasta el 10 de junio (Faltan {tiempo_restante.days} días).")
+        nombre = st.text_input("Tu Nombre:")
         
         mundial = {
-            "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
-            "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
-            "ZONA C": ["Brasil", "Marruecos", "Haití", "Escocia"],
-            "ZONA D": ["Estados Unidos", "Australia", "Paraguay", "Turquía"],
-            "ZONA E": ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
-            "ZONA F": ["Países Bajos", "Japón", "Suecia", "Túnez"],
-            "ZONA G": ["Bélgica", "Egipto", "Irán", "Nueva Zelanda"],
-            "ZONA H": ["España", "Cabo Verde", "Arabia Saudita", "Uruguay"],
-            "ZONA I": ["Francia", "Senegal", "Irak", "Noruega"],
-            "ZONA J": ["Argentina", "Argelia", "Jordania", "Austria"],
-            "ZONA K": ["Portugal", "RD Congo", "Uzbekistán", "Colombia"],
-            "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
-        }
+        "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
+        "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
+        "ZONA C": ["Brasil", "Marruecos", "Haití", "Escocia"],
+        "ZONA D": ["Estados Unidos", "Australia", "Paraguay", "Turquía"],
+        "ZONA E": ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
+        "ZONA F": ["Países Bajos", "Japón", "Suecia", "Túnez"],
+        "ZONA G": ["Bélgica", "Egipto", "Irán", "Nueva Zelanda"],
+        "ZONA H": ["España", "Cabo Verde", "Arabia Saudita", "Uruguay"],
+        "ZONA I": ["Francia", "Senegal", "Irak", "Noruega"],
+        "ZONA J": ["Argentina", "Argelia", "Jordania", "Austria"],
+        "ZONA K": ["Portugal", "RD Congo", "Uzbekistán", "Colombia"],
+        "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
+    }
         
+        # Diccionario para capturar las predicciones
+        predicciones = {}
+
         for zona, equipos in mundial.items():
             with st.expander(f"⚽ {zona}"):
                 for i in range(len(equipos)):
                     for j in range(i + 1, len(equipos)):
-                        col1, col2, col3 = st.columns([2, 1, 2])
-                        with col1: st.write(f"**{equipos[i]}**")
-                        with col2: res = st.selectbox("vs", ["-", "Gana L", "Empate", "Gana V"], key=f"{zona}_{i}_{j}")
-                        with col3: st.write(f"**{equipos[j]}**")
+                        c1, c2, c3 = st.columns([2, 1, 2])
+                        with c1: st.write(equipos[i])
+                        with c2: 
+                            resultado = st.selectbox("vs", ["-", "Gana L", "Empate", "Gana V"], key=f"{zona}_{i}_{j}")
+                            predicciones[f"{equipos[i]} vs {equipos[j]}"] = resultado
+                        with c3: st.write(equipos[j])
 
-        if st.button("✅ AFIRMAR Y ENTREGAR RESULTADOS"):
-            if not nombre_usuario:
-                st.error("⚠️ Debes ingresar un nombre para enviar.")
+        if st.button("✅ ENVIAR RESULTADOS"):
+            if nombre and not any(v == "-" for v in predicciones.values()):
+                try:
+                    # Creamos un DataFrame con el nombre y sus predicciones
+                    nueva_entrada = {"Usuario": nombre, "Puntos": 0, "Aciertos_Exactos": 0}
+                    nueva_entrada.update(predicciones)
+                    
+                    df_nuevo = pd.DataFrame([nueva_entrada])
+                    
+                    # Combinamos con los datos existentes
+                    df_actualizado = pd.concat([df_data, df_nuevo], ignore_index=True)
+                    
+                    # Guardamos en Google Sheets
+                    conn.update(worksheet="Resultados", data=df_actualizado)
+                    
+                    st.success(f"¡{nombre}, tus predicciones han sido guardadas!")
+                    st.balloons()
+                except Exception as e:
+                    st.error(f"Error al guardar: {e}")
+            elif not nombre:
+                st.error("Por favor, ingresa tu nombre.")
             else:
-                st.success(f"¡{nombre_usuario}, tus resultados han sido guardados!")
-                st.balloons()
+                st.error("Por favor, completa todos los partidos.")
 
-# --- BOTÓN WHATSAPP ---
+# --- COMPARTIR ---
 st.sidebar.write("---")
-link_app = "https://tu-app.streamlit.app" # Cambialo por tu link real
-msg = f"¡Unite al Prode del Mundial 2026! Cargá tus resultados acá: {link_app}"
-url_wa = f"https://wa.me/?text={urllib.parse.quote(msg)}"
-st.sidebar.markdown(f'<a href="{url_wa}" target="_blank"><button style="background-color:#25D366; color:white; border:none; padding:10px; border-radius:5px; width:100%; cursor:pointer;">📲 Compartir en WhatsApp</button></a>', unsafe_allow_html=True)
+link = "https://tu-app.streamlit.app"
+msg = urllib.parse.quote(f"¡Unite al Prode! {link}")
+st.sidebar.markdown(f'<a href="https://wa.me/?text={msg}" target="_blank">📲 Invitar Amigos</a>', unsafe_allow_html=True)
