@@ -1,79 +1,118 @@
-import streamlit as st  # <--- ESTO ES LO QUE FALTA O ESTÁ MAL UBICADO
+import streamlit as st
 import pandas as pd
+from datetime import datetime, timezone, timedelta
+from streamlit_gsheets import GSheetsConnection
 import urllib.parse
 
-# La configuración de página DEBE ser el primer comando de Streamlit
-st.set_page_config(page_title="Prode WhatsApp", page_icon="🏆")
+# --- 1. CONFIGURACIÓN E INTERFAZ ---
+st.set_page_config(page_title="Prode Mundial 2026", page_icon="⚽")
 
-# --- RESTO DEL CÓDIGO ---
+# Título Principal
+st.markdown("<h1 style='text-align: center;'>⚽ Prode Mundial 2026</h1>", unsafe_allow_html=True)
 
-# Inicializar la base de datos temporal si no existe
-if "db_participantes" not in st.session_state:
-    st.session_state.db_participantes = []
+# --- 2. BASE DE DATOS (CONEXIÓN GOOGLE SHEETS) ---
+try:
+    conn = st.connection("gsheets", type=GSheetsConnection)
+    df_data = conn.read()
+except:
+    st.error("⚠️ Error de conexión. Asegúrate de configurar los 'Secrets' en Streamlit Cloud.")
+    df_data = pd.DataFrame(columns=["Usuario", "Puntos", "Aciertos_Exactos"])
 
-st.title("🏆 Prode del Grupo")
+# --- 3. LÓGICA DE FECHA LÍMITE ---
+AR = timezone(timedelta(hours=-3))
+fecha_limite = datetime(2026, 6, 10, 23, 59, 59, tzinfo=AR)
+ahora = datetime.now(AR)
+tiempo_restante = fecha_limite - ahora
 
-# Menú lateral para navegar
-menu = ["🏠 Inicio", "👥 Gestionar Grupo", "⚽ Cargar Resultados", "📊 Tabla de Posiciones"]
-choice = st.sidebar.selectbox("Menú", menu)
+# --- 4. MENÚ LATERAL (SIDEBAR) ---
+st.sidebar.header("Menú del Torneo")
+menu = ["📊 Tabla y Premios", "📝 Cargar Pronósticos", "⚙️ Configuración Grupo"]
+choice = st.sidebar.selectbox("Ir a:", menu)
 
-if choice == "🏠 Inicio":
-    st.write("### ¡Bienvenido al simulador de posiciones!")
-    st.info("Configurá los integrantes y cargá los puntos desde el menú lateral.")
-
-elif choice == "👥 Gestionar Grupo":
-    st.header("Integrantes (Máx 20)")
-    nuevo_usuario = st.text_input("Nombre del amigo:")
-    if st.button("Agregar"):
-        if len(st.session_state.db_participantes) < 20:
-            # Agregamos un diccionario por cada participante
-            st.session_state.db_participantes.append({"Nombre": nuevo_usuario, "Puntos": 0})
-            st.success(f"{nuevo_usuario} se unió al grupo.")
-        else:
-            st.error("Grupo lleno.")
+# --- SECCIÓN: CONFIGURACIÓN (ADMIN) ---
+if choice == "⚙️ Configuración Grupo":
+    st.header("⚙️ Configuración del Grupo")
+    nombre_grupo = st.text_input("Nombre del Grupo de WhatsApp:", value="Los Pibes de Comodoro")
+    premio_actual = st.text_area("Premio para el Ganador:", "Ej: Un asado y un Fernet")
     
-    if st.session_state.db_participantes:
-        st.write(pd.DataFrame(st.session_state.db_participantes))
+    if st.button("Guardar Cambios"):
+        st.success("Configuración actualizada para todos los integrantes.")
 
-elif choice == "⚽ Cargar Resultados":
-    st.header("Cargar Jornada")
-    if not st.session_state.db_participantes:
-        st.warning("No hay integrantes en el grupo.")
+# --- SECCIÓN: TABLA Y PREMIOS ---
+elif choice == "📊 Tabla y Premios":
+    st.header("🏆 Posiciones y Premios")
+    
+    # Cuadro de Premio (Editable por el Admin)
+    st.info(f"🎁 **PREMIO ACTUAL:** {st.session_state.get('premio', 'Un asado para el primer puesto')}")
+    
+    # Ranking
+    st.subheader("Ranking del Grupo")
+    if not df_data.empty:
+        # Lógica de orden: 1° Puntos, 2° Aciertos Exactos
+        df_ranking = df_data.sort_values(by=["Puntos", "Aciertos_Exactos"], ascending=False).reset_index(drop=True)
+        df_ranking.index += 1
+        st.table(df_ranking)
     else:
-        with st.form("form_puntos"):
-            st.write("Seleccioná quiénes sumaron puntos hoy:")
-            lista_nombres = [p["Nombre"] for p in st.session_state.db_participantes]
-            ganadores = st.multiselect("¿Quiénes acertaron?", lista_nombres)
-            puntos_a_sumar = st.number_input("Puntos a otorgar:", min_value=1, value=3)
-            
-            if st.form_submit_button("Repartir Puntos"):
-                for p in st.session_state.db_participantes:
-                    if p["Nombre"] in ganadores:
-                        p["Puntos"] += puntos_a_sumar
-                st.success("¡Puntos actualizados!")
+        st.write("Aún no hay resultados cargados.")
 
-elif choice == "📊 Tabla de Posiciones":
-    st.header("Posiciones Actuales")
-    if st.session_state.db_participantes:
-        df = pd.DataFrame(st.session_state.db_participantes)
-        # Ordenamos de mayor a menor puntaje
-        df = df.sort_values(by="Puntos", ascending=False).reset_index(drop=True)
-        df.index += 1 # Para que el ranking empiece en 1
-        st.table(df)
-        
-        # Generar texto para WhatsApp
-        texto_wa = "🏆 *TABLA DEL GRUPO* 🏆\n\n"
-        for i, r in df.iterrows():
-            texto_wa += f"{i}. {r['Nombre']}: {r['Puntos']} pts\n"
-        
-        # Botón con link de WhatsApp
-        link = f"https://wa.me/?text={urllib.parse.quote(texto_wa)}"
-        st.markdown(f"""
-            <a href="{link}" target="_blank">
-                <button style="background-color:#25D366; color:white; border:none; padding:10px 20px; border-radius:5px; width:100%;">
-                    📲 Compartir en WhatsApp
-                </button>
-            </a>
-        """, unsafe_allow_html=True)
+    # Letra Chica (Desempate)
+    st.markdown("""
+    ---
+    <p style='font-size: 0.8rem; color: gray;'>
+    <b>⚖️ Método de Desempate (Letra Chica):</b><br>
+    En caso de igualdad de puntos, el orden se definirá por: <br>
+    1. Mayor cantidad de resultados exactos acertados.<br>
+    2. Mayor cantidad de ganadores acertados (sin marcador exacto).<br>
+    3. Fecha de carga del pronóstico (el que cargó primero gana).
+    </p>
+    """, unsafe_allow_html=True)
+
+# --- SECCIÓN: CARGAR PRONÓSTICOS ---
+elif choice == "📝 Cargar Pronósticos":
+    st.header("📝 Tus Predicciones")
+    
+    if ahora > fecha_limite:
+        st.error(f"❌ El plazo expiró el {fecha_limite.strftime('%d/%m/%Y %H:%M')}. Ya no se aceptan cambios.")
     else:
-        st.info("La tabla está vacía. Agregá gente en 'Gestionar Grupo'.")
+        st.warning(f"⏳ Tienes hasta el 10 de junio a las 23:59 para enviar (Faltan: {tiempo_restante.days} días).")
+        
+        nombre_usuario = st.text_input("Tu Nombre/Apodo:")
+        
+        # Listado de Grupos del Mundial
+        mundial = {
+    "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
+    "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
+    "ZONA C": ["Brasil", "Marruecos", "Haití", "Escocia"],
+    "ZONA D": ["Estados Unidos", "Australia", "Paraguay", "Turquía"],
+    "ZONA E": ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
+    "ZONA F": ["Países Bajos", "Japón", "Suecia", "Túnez"],
+    "ZONA G": ["Bélgica", "Egipto", "Irán", "Nueva Zelanda"],
+    "ZONA H": ["España", "Cabo Verde", "Arabia Saudita", "Uruguay"],
+    "ZONA I": ["Francia", "Senegal", "Irak", "Noruega"],
+    "ZONA J": ["Argentina", "Argelia", "Jordania", "Austria"],
+    "ZONA K": ["Portugal", "RD Congo", "Uzbekistán", "Colombia"],
+    "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
+}
+        
+        for grupo, equipos in mundial.items():
+            with st.expander(f"⚽ {grupo}"):
+                for i in range(len(equipos)):
+                    for j in range(i + 1, len(equipos)):
+                        col1, col2, col3 = st.columns([2, 1, 2])
+                        with col1: st.write(equipos[i])
+                        with col2: res = st.selectbox("vs", ["-", "Gana L", "Empate", "Gana V"], key=f"{grupo}_{i}_{j}")
+                        with col3: st.write(equipos[j])
+
+        if st.button("✅ AFIRMAR Y ENTREGAR RESULTADOS"):
+            if not nombre_usuario:
+                st.error("Por favor, ingresa tu nombre.")
+            else:
+                st.success(f"¡{nombre_usuario}, tus resultados se enviaron correctamente!")
+                st.balloons()
+
+# --- BOTÓN WHATSAPP EN EL PIE ---
+st.sidebar.write("---")
+link_app = "https://tu-prode.streamlit.app"
+msg = f"¡Unite al Prode del Mundial! Entrá acá para cargar tus resultados: {link_app}"
+url_wa = f"https://wa.me/?text={urllib.parse.quote(msg)}"
+st.sidebar.markdown(f'<a href="{url_wa}" target="_blank">📲 Invitar Amigos por WhatsApp</a>', unsafe_allow_html=True)
