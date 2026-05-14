@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
 
-# --- 1. CONFIGURACIÓN Y ESTÉTICA AVANZADA ---
-st.set_page_config(page_title="Predicción Mundial 2026", page_icon="⚽", layout="wide")
+# --- 1. CONFIGURACIÓN Y ESTÉTICA ---
+st.set_page_config(page_title="Mundial 2026 - Predicción vs Realidad", page_icon="🏆", layout="wide")
 
 AR = timezone(timedelta(hours=-3))
 fecha_apertura_reales = datetime(2026, 6, 11, 0, 0, 0, tzinfo=AR)
@@ -12,68 +12,22 @@ ahora = datetime.now(AR)
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;700;900&display=swap');
-    
     .stApp {
-        background: linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.88)), 
+        background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), 
                     url("https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000");
         background-size: cover;
         background-attachment: fixed;
     }
-
-    /* Animación de Pelotas Rebotando */
-    @keyframes bounce {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-    }
-    .soccer-icon {
-        display: inline-block;
-        animation: bounce 2s infinite ease-in-out;
-        font-size: 3.5rem;
-    }
-
-    /* Título con degradado metálico */
-    .titulo-principal {
-        font-family: 'Archivo Black', sans-serif;
-        background: linear-gradient(to bottom, #FFFFFF 0%, #C0C0C0 40%, #FFD700 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        text-align: center;
-        font-size: 4rem !important;
-        margin-bottom: 5px;
-        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.5));
-    }
-
-    .titulo-zona { 
-        font-family: 'Archivo Black', sans-serif; 
-        color: #FF8C00 !important; 
-        font-size: 1.8rem !important; 
-        margin-top: 20px; 
-        margin-bottom: 15px; 
-        border-bottom: 3px solid #FF8C00; 
-        width: fit-content; 
-    }
-
+    .titulo-principal { font-family: 'Archivo Black', sans-serif; color: #FF8C00; text-align: center; font-size: 3.5rem !important; margin-bottom: 20px; }
+    .titulo-zona { font-family: 'Archivo Black', sans-serif; color: #FF8C00 !important; font-size: 1.8rem !important; margin-top: 20px; margin-bottom: 15px; border-bottom: 3px solid #FF8C00; width: fit-content; }
     .nombre-equipo { font-family: 'Inter', sans-serif; font-size: 1.1rem !important; font-weight: 700 !important; color: #FFFFFF !important; }
     .titulo-posiciones { font-family: 'Archivo Black', sans-serif; font-size: 1.6rem !important; color: #FF8C00 !important; text-align: center; margin-bottom: 10px; }
-
     [data-testid="stTable"] { background-color: rgba(255, 255, 255, 0.05) !important; border-radius: 15px !important; border: 1px solid rgba(255, 140, 0, 0.4) !important; }
-    [data-testid="stTable"] td, [data-testid="stTable"] th { color: white !important; text-align: center !important; padding: 12px !important; border-bottom: 1px solid rgba(255, 140, 0, 0.2) !important; }
-    
-    div[data-testid="stNumberInput"] input { 
-        background-color: #1a1a1a !important; 
-        color: #FFD700 !important; 
-        border: 2px solid #FF8C00 !important; 
-        font-weight: 900 !important; 
-        font-size: 1.2rem !important;
-        text-align: center !important;
-    }
+    [data-testid="stTable"] td, [data-testid="stTable"] th { color: white !important; font-family: 'Inter', sans-serif !important; border-bottom: 1px solid rgba(255, 140, 0, 0.3) !important; border-right: 1px solid rgba(255, 140, 0, 0.3) !important; text-align: center !important; padding: 12px !important; }
+    [data-testid="stTable"] th { font-size: 1.2rem !important; font-weight: 700 !important; background-color: rgba(255, 140, 0, 0.1) !important; }
+    [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child { border-right: none !important; }
+    div[data-testid="stNumberInput"] input { background-color: #2c2c2c !important; color: white !important; border: 2px solid #FF8C00 !important; font-weight: 800 !important; text-align: center !important; }
     </style>
-    
-    <div style="text-align: center;">
-        <span class="soccer-icon">⚽</span>
-        <h1 class="titulo-principal">Predicción Mundial 2026 🇦🇷</h1>
-        <span class="soccer-icon" style="animation-delay: 0.5s;">⚽</span>
-    </div>
     """, unsafe_allow_html=True)
 
 # --- 2. DATOS DE GRUPOS ---
@@ -97,6 +51,7 @@ def calcular_df_estricto(equipos, resultados_dict):
     tabla.index.name = "Equipos"
     for (e1, e2), (g1, g2) in resultados_dict.items():
         if e1 in equipos and e2 in equipos:
+            # Procesamos el partido si hubo goles o si se interactuó con el input
             tabla.loc[e1, 'PJ'] += 1; tabla.loc[e2, 'PJ'] += 1
             tabla.loc[e1, 'GF'] += g1; tabla.loc[e1, 'GC'] += g2
             tabla.loc[e2, 'GF'] += g2; tabla.loc[e2, 'GC'] += g1
@@ -107,11 +62,13 @@ def calcular_df_estricto(equipos, resultados_dict):
             else: tabla.loc[e1, 'Pts'] += 1; tabla.loc[e2, 'Pts'] += 1
     return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
 
-# --- 3. INTERFAZ ---
-tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 PUNTAJE FINAL"])
+st.markdown("<h1 class='titulo-principal'>MUNDIAL 2026</h1>", unsafe_allow_html=True)
+tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 TABLA DE PUNTOS"])
 
+# --- TAB PREDICCIÓN ---
 with tab_p:
-    st.text_input("👤 **NOMBRE DEL PARTICIPANTE:**", key="user_name", placeholder="Escribe tu nombre aquí...")
+    puede_predecir = ahora < fecha_apertura_reales
+    st.text_input("👤 **TU NOMBRE:**", key="user_name")
     predicciones_usuario = {}
     for zona, equipos in mundial.items():
         st.markdown(f"<div class='titulo-zona'>📍 {zona}</div>", unsafe_allow_html=True)
@@ -122,22 +79,24 @@ with tab_p:
                     e1, e2 = equipos[i], equipos[j]
                     cols = st.columns([2, 0.6, 0.2, 0.6, 2])
                     cols[0].markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
-                    g1 = cols[1].number_input("", 0, 20, 0, key=f"p_{e1}_{e2}_{zona}", label_visibility="collapsed")
+                    g1 = cols[1].number_input("", 0, 20, 0, key=f"p_{e1}_{e2}_{zona}", label_visibility="collapsed", disabled=not puede_predecir)
                     cols[2].markdown("<p style='text-align:center; color:white;'>-</p>", unsafe_allow_html=True)
-                    g2 = cols[3].number_input("", 0, 20, 0, key=f"p2_{e1}_{e2}_{zona}", label_visibility="collapsed")
+                    g2 = cols[3].number_input("", 0, 20, 0, key=f"p2_{e1}_{e2}_{zona}", label_visibility="collapsed", disabled=not puede_predecir)
                     cols[4].markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
                     predicciones_usuario[(e1, e2)] = (g1, g2)
         with c2:
-            st.markdown(f"<div class='titulo-posiciones'>📊 TU TABLA {zona}</div>", unsafe_allow_html=True)
+            st.markdown(f"<div class='titulo-posiciones'>📊 POSICIONES {zona}</div>", unsafe_allow_html=True)
             st.table(calcular_df_estricto(equipos, predicciones_usuario))
 
+# --- TAB RESULTADOS REALES (Habilitada para pruebas) ---
 with tab_r:
-    st.markdown("<h2 style='color:#FF8C00; text-align:center;'>📈 CARGA OFICIAL FIFA</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#FF8C00; text-align:center;'>📈 CARGA DE RESULTADOS OFICIALES</h2>", unsafe_allow_html=True)
     resultados_oficiales = {}
     for zona, equipos in mundial.items():
         st.markdown(f"<div class='titulo-zona'>📍 {zona}</div>", unsafe_allow_html=True)
         col1, col2 = st.columns([1, 1.2])
         with col1:
+            # Aquí se replica el diseño de image_cc5b59.png
             for i in range(len(equipos)):
                 for j in range(i + 1, len(equipos)):
                     e1, e2 = equipos[i], equipos[j]
@@ -152,15 +111,16 @@ with tab_r:
             st.markdown("<div class='titulo-posiciones'>📊 POSICIONES REALES</div>", unsafe_allow_html=True)
             st.table(calcular_df_estricto(equipos, resultados_oficiales))
 
+# --- TAB COMPARATIVA ---
 with tab_c:
-    st.markdown("<h2 style='color:#FF8C00; text-align:center;'>🎯 CÁLCULO DE ACIERTOS</h2>", unsafe_allow_html=True)
+    st.markdown("<h2 style='color:#FF8C00; text-align:center;'>🎯 COMPARATIVA Y PUNTAJE</h2>", unsafe_allow_html=True)
     total_gral = 0
     for zona, equipos in mundial.items():
         st.markdown(f"<div class='titulo-zona'>⚖️ {zona}</div>", unsafe_allow_html=True)
         orden_p = calcular_df_estricto(equipos, predicciones_usuario).index.tolist()
         orden_r = calcular_df_estricto(equipos, resultados_oficiales).index.tolist()
         c_a, c_b, c_c = st.columns([1, 1, 1])
-        c_a.markdown("**TU POSICIÓN**"); c_b.markdown("**REALIDAD**"); c_c.markdown("**PUNTOS**")
+        c_a.markdown("**TU PREDICCIÓN**"); c_b.markdown("**REALIDAD**"); c_c.markdown("**PUNTOS**")
         puntos_z = 0
         for idx in range(len(equipos)):
             eq_p, eq_r = orden_p[idx], orden_r[idx]
@@ -173,4 +133,4 @@ with tab_c:
             c_c.write(f"{ico} +{pts}")
         total_gral += puntos_z
         st.divider()
-    st.markdown(f"<div style='background: linear-gradient(45deg, #FF8C00, #FFD700); padding:20px; border-radius:15px; text-align:center; box-shadow: 0px 4px 15px rgba(255,140,0,0.5);'><h1 style='color:black; margin:0;'>PUNTAJE TOTAL: {total_gral} PUNTOS</h1></div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='background-color:#FF8C00; padding:20px; border-radius:15px; text-align:center;'><h1 style='color:black;'>SUMA TOTAL: {total_gral} PUNTOS</h1></div>", unsafe_allow_html=True)
