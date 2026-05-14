@@ -2,8 +2,13 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
 
-# --- 1. CONFIGURACIÓN Y ESTÉTICA DE ALTO CONTRASTE ---
+# --- 1. CONFIGURACIÓN Y ESTÉTICA ---
 st.set_page_config(page_title="Mundial 2026 - Predicción vs Realidad", page_icon="🏆", layout="wide")
+
+# Lógica de Tiempo (Local Argentina UTC-3)
+AR = timezone(timedelta(hours=-3))
+fecha_apertura_reales = datetime(2026, 6, 11, 0, 0, 0, tzinfo=AR)
+ahora = datetime.now(AR)
 
 st.markdown("""
     <style>
@@ -30,7 +35,6 @@ st.markdown("""
         margin-bottom: 20px;
     }
 
-    /* TÍTULOS DE ZONAS (NEGRO FUERTE) */
     .titulo-zona {
         font-family: 'Archivo Black', sans-serif;
         color: #000000 !important;
@@ -48,7 +52,6 @@ st.markdown("""
         color: #000000 !important;
     }
 
-    /* TÍTULO DE POSICIONES (MÁS GRANDE Y SIN FRANJA) */
     .titulo-posiciones {
         font-family: 'Inter', sans-serif;
         font-size: 1.4rem !important;
@@ -58,11 +61,9 @@ st.markdown("""
         margin-bottom: 10px;
     }
 
-    /* INPUTS MINI */
     div[data-testid="stNumberInput"] { width: 55px !important; }
     input { font-weight: 800 !important; color: #1a472a !important; }
 
-    /* ESTILO DE LA TABLA */
     [data-testid="stTable"] {
         background-color: white !important;
         border-radius: 10px !important;
@@ -77,7 +78,7 @@ st.markdown("""
 
 st.markdown("<h1 class='titulo-principal'>MUNDIAL 2026</h1>", unsafe_allow_html=True)
 
-# --- 2. LÓGICA DE DATOS ---
+# --- 2. DATOS BASE ---
 mundial = {
         "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
         "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
@@ -93,6 +94,7 @@ mundial = {
         "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
     }
 
+# Función original para MI PREDICCIÓN (No se toca)
 def calcular_df_estricto(equipos, resultados_dict):
     tabla = pd.DataFrame({
         'Equipo': equipos, 
@@ -101,7 +103,6 @@ def calcular_df_estricto(equipos, resultados_dict):
     
     for (e1, e2), (g1, g2) in resultados_dict.items():
         if e1 in equipos and e2 in equipos:
-            # Solo suma si hubo actividad (evita los 3 por defecto)
             if g1 > 0 or g2 > 0:
                 tabla.loc[e1, 'PJ'] += 1
                 tabla.loc[e2, 'PJ'] += 1
@@ -119,12 +120,12 @@ def calcular_df_estricto(equipos, resultados_dict):
     tabla['DG'] = tabla['GF'] - tabla['GC']
     return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
 
-# --- 3. INTERFAZ ---
+# --- 3. INTERFAZ DE TABS ---
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 TABLA DE PUNTOS"])
 
+# SOLAPA 1: MI PREDICCIÓN (SIN MODIFICACIONES)
 with tab_p:
     nombre = st.text_input("👤 **TU NOMBRE:**")
-    
     user_input_now = {}
     for zona, equipos in mundial.items():
         st.markdown(f"<div class='titulo-zona'>📍 {zona}</div>", unsafe_allow_html=True)
@@ -147,6 +148,53 @@ with tab_p:
             df_final = calcular_df_estricto(equipos, user_input_now)
             st.table(df_final)
 
+# SOLAPA 2: RESULTADOS REALES (NUEVA LÓGICA TEMPORAL Y TABLA DE PUNTOS)
+with tab_r:
+    if ahora < fecha_apertura_reales:
+        st.markdown("<div style='text-align:center; padding:50px;'>", unsafe_allow_html=True)
+        st.warning(f"🔒 LA CARGA DE DATOS REALES SE HABILITARÁ EL 11 DE JUNIO A LAS 00:00.")
+        st.info(f"Faltan { (fecha_apertura_reales - ahora).days } días para el inicio oficial del torneo.")
+        st.markdown("</div>", unsafe_allow_html=True)
+    else:
+        st.markdown("<h2 style='color:#000000; text-align:center;'>🏆 CARGA OFICIAL DE RESULTADOS</h2>", unsafe_allow_html=True)
+        resultados_oficiales = {}
+        
+        for zona, equipos in mundial.items():
+            st.markdown(f"<div class='titulo-zona'>📍 {zona}</div>", unsafe_allow_html=True)
+            col_inputs, col_tabla_real = st.columns([1, 1.2])
+            
+            with col_inputs:
+                for i in range(len(equipos)):
+                    for j in range(i + 1, len(equipos)):
+                        e1, e2 = equipos[i], equipos[j]
+                        c = st.columns([2, 0.6, 0.2, 0.6, 2])
+                        with c[0]: st.markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
+                        gr1 = c[1].number_input("", 0, 20, 0, key=f"real_{e1}_{e2}_{zona}", label_visibility="collapsed")
+                        with c[2]: st.markdown("<p style='text-align:center; font-weight:900;'>-</p>", unsafe_allow_html=True)
+                        gr2 = c[3].number_input("", 0, 20, 0, key=f"real2_{e1}_{e2}_{zona}", label_visibility="collapsed")
+                        with c[4]: st.markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
+                        resultados_oficiales[(e1, e2)] = (gr1, gr2)
+            
+            with col_tabla_real:
+                st.markdown("<p class='titulo-posiciones'>📊 POSICIONES OFICIALES</p>", unsafe_allow_html=True)
+                
+                # Tabla simplificada: Solo Equipo y Puntos
+                df_real = pd.DataFrame({'Equipo': equipos, 'Pts': 0}).set_index('Equipo')
+                for (eq1, eq2), (gol1, gol2) in resultados_oficiales.items():
+                    if gol1 > 0 or gol2 > 0 or (gol1 == 0 and gol2 == 0 and f"real_{eq1}_{eq2}_{zona}" in st.session_state): 
+                        # Lógica de puntos básica
+                        if gol1 > gol2: df_real.loc[eq1, 'Pts'] += 3
+                        elif gol2 > gol1: df_real.loc[eq2, 'Pts'] += 3
+                        else:
+                            df_real.loc[eq1, 'Pts'] += 1
+                            df_real.loc[eq2, 'Pts'] += 1
+                
+                st.table(df_real.sort_values(by='Pts', ascending=False))
+
+# SOLAPA 3: TABLA DE PUNTOS (PRODE)
+with tab_c:
+    st.info("Aquí se mostrará el ranking de usuarios basado en sus aciertos una vez que inicie el torneo.")
+
 st.divider()
-if st.button("✅ Finalizar Predicción"):
+if st.button("✅ Finalizar"):
     st.balloons()
