@@ -54,7 +54,7 @@ st.markdown("""
         margin-bottom: 10px;
     }
 
-    /* Estilo de la tabla fiel a image_cd387d.png */
+    /* Estilo de tablas */
     [data-testid="stTable"] {
         background-color: rgba(255, 255, 255, 0.05) !important;
         border-radius: 15px !important;
@@ -71,7 +71,7 @@ st.markdown("""
     }
     
     [data-testid="stTable"] th {
-        font-size: 1.3rem !important;
+        font-size: 1.2rem !important;
         font-weight: 700 !important;
     }
 
@@ -106,12 +106,12 @@ mundial = {
 
 def calcular_df_estricto(equipos, resultados_dict, simplificada=False):
     if simplificada:
-        # Columna "Equipos" como índice y "Puntos" como valor (según image_cd387d.png)
         tabla = pd.DataFrame(0, index=equipos, columns=['Puntos'])
         tabla.index.name = "Equipos"
     else:
+        # Cambio aplicado: "Equipos" con S también en la tabla de predicción
         tabla = pd.DataFrame(0, index=equipos, columns=['Pts', 'PJ', 'GF', 'GC', 'DG'])
-        tabla.index.name = "Equipo"
+        tabla.index.name = "Equipos"
     
     for (e1, e2), (g1, g2) in resultados_dict.items():
         if e1 in equipos and e2 in equipos:
@@ -179,11 +179,10 @@ with tab_r:
                         c[4].markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
                         resultados_oficiales[(e1, e2)] = (g1, g2)
             else:
-                st.info(f"Carga de datos para el {zona} disponible desde el inicio del torneo.")
+                st.info(f"Carga oficial disponible al inicio del torneo.")
 
         with col2:
             st.markdown("<div class='titulo-posiciones'>📊 POSICIONES</div>", unsafe_allow_html=True)
-            # Solicitado: Tabla con columnas "Equipos" y "Puntos"
             df_real = calcular_df_estricto(equipos, resultados_oficiales if es_fecha_edicion else {}, simplificada=True)
             st.table(df_real)
 
