@@ -25,16 +25,13 @@ st.markdown("""
         color: black;
         font-size: 3rem !important;
         text-align: center;
-        margin: 0;
         -webkit-text-stroke: 1.5px white;
-        text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
     }
 
     .titulo-zona { 
         font-family: 'Archivo Black', sans-serif; 
         color: #FF8C00 !important; 
         font-size: 1.8rem !important; 
-        margin-top: 20px; 
         margin-bottom: 15px; 
         border-bottom: 3px solid #FF8C00; 
         width: fit-content; 
@@ -42,7 +39,7 @@ st.markdown("""
 
     .nombre-equipo { font-family: 'Inter', sans-serif; font-size: 1.1rem !important; font-weight: 700 !important; color: #FFFFFF !important; }
 
-    /* Estilo de Tabla Tipo image_cbdedd.jpg */
+    /* Estilo de Tabla con líneas verticales */
     [data-testid="stTable"] { 
         background-color: rgba(255, 255, 255, 0.05) !important; 
         border-radius: 15px !important; 
@@ -51,34 +48,32 @@ st.markdown("""
     }
     [data-testid="stTable"] td, [data-testid="stTable"] th { 
         color: white !important; 
-        font-family: 'Inter', sans-serif !important; 
         border-bottom: 1px solid rgba(255, 140, 0, 0.3) !important; 
         border-right: 1px solid rgba(255, 140, 0, 0.3) !important; 
         text-align: center !important; 
-        padding: 10px !important; 
-    }
-    [data-testid="stTable"] th { 
-        font-size: 1rem !important; 
-        font-weight: 900 !important; 
-        background-color: rgba(255, 140, 0, 0.15) !important; 
     }
     [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child { border-right: none !important; }
 
-    /* Inputs Limpios */
+    /* --- LIMPIEZA DE INPUTS (Quita la X y los controles de la imagen image_cbd743.png) --- */
+    div[data-testid="stNumberInput"] button {
+        display: none !important; /* Quita los botones + y - */
+    }
+    
     div[data-testid="stNumberInput"] input { 
         background-color: #1a1a1a !important; 
         color: #FFD700 !important; 
         border: 2px solid #FF8C00 !important; 
         font-weight: 900 !important; 
         text-align: center !important;
-        font-size: 1.1rem !important;
+        padding-right: 10px !important; /* Ajusta el espacio para que el número quede centrado */
+    }
+
+    /* Quita el botón de "clear" (la X) que aparece al escribir */
+    button[title="Clear value"] {
+        display: none !important;
     }
     </style>
-    
-    <div style="text-align: center; padding: 15px 0;">
-        <span class="titulo-personalizado">Predicción Mundial 2026</span>
-    </div>
-    """, unsafe_allow_html=True)
+    """, unsafe_allow_html=True
 
 # --- 2. LÓGICA DE DATOS ---
 mundial = {
