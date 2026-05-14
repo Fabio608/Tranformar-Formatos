@@ -78,23 +78,22 @@ st.markdown("""
 
 st.markdown("<h1 class='titulo-principal'>MUNDIAL 2026</h1>", unsafe_allow_html=True)
 
-# --- 2. DATOS BASE ---
+# --- 2. TODOS LOS GRUPOS (A - L) ---
 mundial = {
-        "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
-        "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
-        "ZONA C": ["Brasil", "Marruecos", "Haití", "Escocia"],
-        "ZONA D": ["Estados Unidos", "Australia", "Paraguay", "Turquía"],
-        "ZONA E": ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
-        "ZONA F": ["Países Bajos", "Japón", "Suecia", "Túnez"],
-        "ZONA G": ["Bélgica", "Egipto", "Irán", "Nueva Zelanda"],
-        "ZONA H": ["España", "Cabo Verde", "Arabia Saudita", "Uruguay"],
-        "ZONA I": ["Francia", "Senegal", "Irak", "Noruega"],
-        "ZONA J": ["Argentina", "Argelia", "Jordania", "Austria"],
-        "ZONA K": ["Portugal", "RD Congo", "Uzbekistán", "Colombia"],
-        "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
-    }
+    "GRUPO A": ["🇲🇽 México", "🇺🇸 Estados Unidos", "🇨🇦 Canadá", "🇵🇦 Panamá"],
+    "GRUPO B": ["🇦🇷 Argentina", "🇪🇨 Ecuador", "🇺🇾 Uruguay", "🇧🇷 Brasil"],
+    "GRUPO C": ["🇫🇷 Francia", "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra", "🇧🇪 Bélgica", "🇳🇱 Países Bajos"],
+    "GRUPO D": ["🇪🇸 España", "🇵🇹 Portugal", "🇩🇪 Alemania", "🇮🇹 Italia"],
+    "GRUPO E": ["🇲🇦 Marruecos", "🇸🇳 Senegal", "🇹🇳 Túnez", "🇩🇿 Argelia"],
+    "GRUPO F": ["🇯🇵 Japón", "🇰🇷 Corea del Sur", "🇸🇦 Arabia Saudita", "🇦🇺 Australia"],
+    "GRUPO G": ["🇭🇷 Croacia", "🇨🇭 Suiza", "🇩🇰 Dinamarca", "🇷🇸 Serbia"],
+    "GRUPO H": ["🇨🇴 Colombia", "🇵🇾 Paraguay", "🇨🇱 Chile", "🇵🇪 Perú"],
+    "GRUPO I": ["🇳🇬 Nigeria", "🇪🇬 Egipto", "🇨🇲 Camerún", "🇬🇭 Ghana"],
+    "GRUPO J": ["🇺🇦 Ucrania", "🇵🇱 Polonia", "🇦🇹 Austria", "🇹🇷 Turquía"],
+    "GRUPO K": ["🇨🇷 Costa Rica", "🇯🇲 Jamaica", "🇭🇳 Honduras", "🇸🇻 El Salvador"],
+    "GRUPO L": ["🇶🇦 Qatar", "🇮🇷 Irán", "🇮🇶 Irak", "🇦🇪 Emiratos Árabes"]
+}
 
-# Función original para MI PREDICCIÓN (No se toca)
 def calcular_df_estricto(equipos, resultados_dict):
     tabla = pd.DataFrame({
         'Equipo': equipos, 
@@ -110,91 +109,76 @@ def calcular_df_estricto(equipos, resultados_dict):
                 tabla.loc[e1, 'GC'] += g2
                 tabla.loc[e2, 'GF'] += g2
                 tabla.loc[e2, 'GC'] += g1
-                
                 if g1 > g2: tabla.loc[e1, 'Pts'] += 3
                 elif g2 > g1: tabla.loc[e2, 'Pts'] += 3
                 else:
                     tabla.loc[e1, 'Pts'] += 1
                     tabla.loc[e2, 'Pts'] += 1
-                
     tabla['DG'] = tabla['GF'] - tabla['GC']
     return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
 
-# --- 3. INTERFAZ DE TABS ---
+# --- 3. INTERFAZ ---
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 TABLA DE PUNTOS"])
 
-# SOLAPA 1: MI PREDICCIÓN (SIN MODIFICACIONES)
+# SOLAPA 1: MI PREDICCIÓN (SIN CAMBIOS)
 with tab_p:
     nombre = st.text_input("👤 **TU NOMBRE:**")
     user_input_now = {}
     for zona, equipos in mundial.items():
         st.markdown(f"<div class='titulo-zona'>📍 {zona}</div>", unsafe_allow_html=True)
         c_partidos, c_tabla = st.columns([1, 1.2])
-        
         with c_partidos:
             for i in range(len(equipos)):
                 for j in range(i + 1, len(equipos)):
                     e1, e2 = equipos[i], equipos[j]
                     cols = st.columns([2, 0.6, 0.2, 0.6, 2])
                     with cols[0]: st.markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
-                    with cols[1]: g1 = st.number_input("", 0, 20, 0, key=f"f_{e1}_{e2}_{zona}", label_visibility="collapsed")
+                    g1 = cols[1].number_input("", 0, 20, 0, key=f"p_{e1}_{e2}_{zona}", label_visibility="collapsed")
                     with cols[2]: st.markdown("<p style='text-align:center; font-weight:900;'>-</p>", unsafe_allow_html=True)
-                    with cols[3]: g2 = st.number_input("", 0, 20, 0, key=f"f2_{e1}_{e2}_{zona}", label_visibility="collapsed")
+                    g2 = cols[3].number_input("", 0, 20, 0, key=f"p2_{e1}_{e2}_{zona}", label_visibility="collapsed")
                     with cols[4]: st.markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
                     user_input_now[(e1, e2)] = (g1, g2)
-        
         with c_tabla:
             st.markdown(f"<div class='titulo-posiciones'>📊 POSICIONES {zona}</div>", unsafe_allow_html=True)
-            df_final = calcular_df_estricto(equipos, user_input_now)
-            st.table(df_final)
+            st.table(calcular_df_estricto(equipos, user_input_now))
 
-# SOLAPA 2: RESULTADOS REALES (NUEVA LÓGICA TEMPORAL Y TABLA DE PUNTOS)
+# SOLAPA 2: RESULTADOS REALES (SÓLO PUNTAJES)
 with tab_r:
     if ahora < fecha_apertura_reales:
-        st.markdown("<div style='text-align:center; padding:50px;'>", unsafe_allow_html=True)
+        st.markdown("<br><br>", unsafe_allow_html=True)
         st.warning(f"🔒 LA CARGA DE DATOS REALES SE HABILITARÁ EL 11 DE JUNIO A LAS 00:00.")
-        st.info(f"Faltan { (fecha_apertura_reales - ahora).days } días para el inicio oficial del torneo.")
-        st.markdown("</div>", unsafe_allow_html=True)
     else:
-        st.markdown("<h2 style='color:#000000; text-align:center;'>🏆 CARGA OFICIAL DE RESULTADOS</h2>", unsafe_allow_html=True)
-        resultados_oficiales = {}
-        
+        st.markdown("<h2 style='color:#000000; text-align:center;'>🏆 RESULTADOS OFICIALES</h2>", unsafe_allow_html=True)
+        resultados_reales = {}
         for zona, equipos in mundial.items():
             st.markdown(f"<div class='titulo-zona'>📍 {zona}</div>", unsafe_allow_html=True)
-            col_inputs, col_tabla_real = st.columns([1, 1.2])
-            
-            with col_inputs:
+            cr1, cr2 = st.columns([1, 1.2])
+            with cr1:
                 for i in range(len(equipos)):
                     for j in range(i + 1, len(equipos)):
                         e1, e2 = equipos[i], equipos[j]
-                        c = st.columns([2, 0.6, 0.2, 0.6, 2])
-                        with c[0]: st.markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
-                        gr1 = c[1].number_input("", 0, 20, 0, key=f"real_{e1}_{e2}_{zona}", label_visibility="collapsed")
-                        with c[2]: st.markdown("<p style='text-align:center; font-weight:900;'>-</p>", unsafe_allow_html=True)
-                        gr2 = c[3].number_input("", 0, 20, 0, key=f"real2_{e1}_{e2}_{zona}", label_visibility="collapsed")
-                        with c[4]: st.markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
-                        resultados_oficiales[(e1, e2)] = (gr1, gr2)
-            
-            with col_tabla_real:
-                st.markdown("<p class='titulo-posiciones'>📊 POSICIONES OFICIALES</p>", unsafe_allow_html=True)
-                
-                # Tabla simplificada: Solo Equipo y Puntos
+                        cols = st.columns([2, 0.6, 0.2, 0.6, 2])
+                        with cols[0]: st.markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
+                        gr1 = cols[1].number_input("", 0, 20, 0, key=f"r_{e1}_{e2}_{zona}", label_visibility="collapsed")
+                        with cols[2]: st.markdown("<p style='text-align:center; font-weight:900;'>-</p>", unsafe_allow_html=True)
+                        gr2 = cols[3].number_input("", 0, 20, 0, key=f"r2_{e1}_{e2}_{zona}", label_visibility="collapsed")
+                        with cols[4]: st.markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
+                        resultados_reales[(e1, e2)] = (gr1, gr2)
+            with cr2:
+                st.markdown("<p class='titulo-posiciones'>📊 SOLO PUNTOS</p>", unsafe_allow_html=True)
                 df_real = pd.DataFrame({'Equipo': equipos, 'Pts': 0}).set_index('Equipo')
-                for (eq1, eq2), (gol1, gol2) in resultados_oficiales.items():
-                    if gol1 > 0 or gol2 > 0 or (gol1 == 0 and gol2 == 0 and f"real_{eq1}_{eq2}_{zona}" in st.session_state): 
-                        # Lógica de puntos básica
-                        if gol1 > gol2: df_real.loc[eq1, 'Pts'] += 3
-                        elif gol2 > gol1: df_real.loc[eq2, 'Pts'] += 3
+                for (eq1, eq2), (v1, v2) in resultados_reales.items():
+                    if v1 > 0 or v2 > 0 or (v1 == 0 and v2 == 0): # Simular carga
+                        if v1 > v2: df_real.loc[eq1, 'Pts'] += 3
+                        elif v2 > v1: df_real.loc[eq2, 'Pts'] += 3
                         else:
                             df_real.loc[eq1, 'Pts'] += 1
                             df_real.loc[eq2, 'Pts'] += 1
-                
                 st.table(df_real.sort_values(by='Pts', ascending=False))
 
-# SOLAPA 3: TABLA DE PUNTOS (PRODE)
 with tab_c:
-    st.info("Aquí se mostrará el ranking de usuarios basado en sus aciertos una vez que inicie el torneo.")
+    st.write("Ranking de aciertos disponible al inicio del torneo.")
 
 st.divider()
-if st.button("✅ Finalizar"):
+if st.button("✅ Guardar Todo"):
     st.balloons()
