@@ -54,7 +54,6 @@ st.markdown("""
         margin-bottom: 10px;
     }
 
-    /* Estilo de tablas */
     [data-testid="stTable"] {
         background-color: rgba(255, 255, 255, 0.05) !important;
         border-radius: 15px !important;
@@ -109,7 +108,6 @@ def calcular_df_estricto(equipos, resultados_dict, simplificada=False):
         tabla = pd.DataFrame(0, index=equipos, columns=['Puntos'])
         tabla.index.name = "Equipos"
     else:
-        # Cambio aplicado: "Equipos" con S también en la tabla de predicción
         tabla = pd.DataFrame(0, index=equipos, columns=['Pts', 'PJ', 'GF', 'GC', 'DG'])
         tabla.index.name = "Equipos"
     
@@ -136,7 +134,16 @@ st.markdown("<h1 class='titulo-principal'>MUNDIAL 2026</h1>", unsafe_allow_html=
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 TABLA DE PUNTOS"])
 
 with tab_p:
-    st.text_input("👤 **TU NOMBRE:**", key="user_name")
+    # NUEVA CORRECCIÓN: Bloqueo de predicción si ya empezó el mundial
+    puede_predecir = ahora < fecha_apertura_reales
+    
+    if puede_predecir:
+        st.text_input("👤 **TU NOMBRE:**", key="user_name")
+    else:
+        nombre_usu = st.session_state.get("user_name", "Participante")
+        st.markdown(f"### 👤 Participante: {nombre_usu}")
+        st.warning("🔒 Fase de pronósticos cerrada. ¡Mucha suerte con tus predicciones!")
+
     predicciones_usuario = {}
     for zona, equipos in mundial.items():
         st.markdown(f"<div class='titulo-zona'>📍 {zona}</div>", unsafe_allow_html=True)
@@ -147,9 +154,14 @@ with tab_p:
                     e1, e2 = equipos[i], equipos[j]
                     cols = st.columns([2, 0.6, 0.2, 0.6, 2])
                     cols[0].markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
-                    g1 = cols[1].number_input("", 0, 20, 0, key=f"p_{e1}_{e2}_{zona}", label_visibility="collapsed")
+                    
+                    # disabled=not puede_predecir bloquea los números después del 10/06
+                    g1 = cols[1].number_input("", 0, 20, 0, key=f"p_{e1}_{e2}_{zona}", 
+                                             label_visibility="collapsed", disabled=not puede_predecir)
                     cols[2].markdown("<p style='text-align:center; color:white;'>-</p>", unsafe_allow_html=True)
-                    g2 = cols[3].number_input("", 0, 20, 0, key=f"p2_{e1}_{e2}_{zona}", label_visibility="collapsed")
+                    g2 = cols[3].number_input("", 0, 20, 0, key=f"p2_{e1}_{e2}_{zona}", 
+                                             label_visibility="collapsed", disabled=not puede_predecir)
+                    
                     cols[4].markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
                     predicciones_usuario[(e1, e2)] = (g1, g2)
         with c2:
@@ -159,8 +171,9 @@ with tab_p:
 with tab_r:
     st.markdown("<h2 style='color:#FF8C00; text-align:center;'>📊 SEGUIMIENTO OFICIAL FIFA</h2>", unsafe_allow_html=True)
     es_fecha_edicion = ahora >= fecha_apertura_reales
+    
     if not es_fecha_edicion:
-        st.warning(f"🔒 MODO LECTURA: La edición se habilitará el 11 de junio de 2026.")
+        st.warning(f"🔒 MODO LECTURA: La carga de resultados se habilitará el 11 de junio.")
     
     resultados_oficiales = {}
     for zona, equipos in mundial.items():
@@ -179,7 +192,7 @@ with tab_r:
                         c[4].markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
                         resultados_oficiales[(e1, e2)] = (g1, g2)
             else:
-                st.info(f"Carga oficial disponible al inicio del torneo.")
+                st.info(f"Los resultados reales se cargarán aquí al comenzar el Mundial.")
 
         with col2:
             st.markdown("<div class='titulo-posiciones'>📊 POSICIONES</div>", unsafe_allow_html=True)
@@ -188,8 +201,12 @@ with tab_r:
 
 with tab_c:
     st.markdown("<h2 style='color:#FF8C00; text-align:center;'>🎯 TABLA GENERAL</h2>", unsafe_allow_html=True)
-    st.write("Cálculo de aciertos y puntajes.")
+    st.write("Cálculo de aciertos y puntajes comparativos.")
 
 st.divider()
-if st.button("✅ Guardar Todo"):
-    st.balloons()
+if puede_predecir:
+    if st.button("✅ Guardar Predicción"):
+        st.balloons()
+        st.success("¡Tu predicción ha sido guardada!")
+else:
+    st.button("✅ Guardar Predicción", disabled=True, help="El periodo de predicción terminó.")
