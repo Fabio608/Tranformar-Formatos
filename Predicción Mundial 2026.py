@@ -1,10 +1,3 @@
-¡Perfecto! Vamos a darle el toque final de legibilidad. Para que las letras sean realmente visibles, aumentaremos el tamaño de los nombres de los equipos, los pondremos en negrita y les daremos un color oscuro que resalte bien sobre el fondo claro.
-
-También ajusté el tamaño del guion central y los números para que todo tenga una armonía visual "pro".
-
-Aquí tenés el código definitivo:
-
-Pitón
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
@@ -65,6 +58,7 @@ st.markdown("""
         font-weight: bold;
         text-align: center;
         margin-top: 5px;
+        color: #000000;
     }
 
     h1 { color: #1a472a; text-align: center; font-weight: 900; font-size: 3rem !important; }
@@ -74,7 +68,7 @@ st.markdown("""
 
 st.markdown("<h1>🏆 PRODE MUNDIAL 2026 </h1>", unsafe_allow_html=True)
 
-# --- 2. LÓGICA DE TIEMPO ---
+# --- 2. LÓGICA DE TIEMPO (Argentina UTC-3) ---
 AR = timezone(timedelta(hours=-3))
 fecha_limite = datetime(2026, 6, 10, 23, 59, 59, tzinfo=AR)
 ahora = datetime.now(AR)
@@ -120,7 +114,7 @@ def calcular_tabla(equipos, resultados):
 
 # --- 4. INTERFAZ ---
 if ahora > fecha_limite:
-    st.error("❌ El plazo de entrega finalizó.")
+    st.error("❌ El plazo de entrega finalizó el 10 de junio a las 23:59 (Hora Argentina).")
 else:
     st.markdown(f"**⏳ Tiempo restante:** {tiempo_restante.days} días para el cierre.")
     nombre = st.text_input("👤 Tu Nombre / Apodo:", placeholder="Escribí acá tu nombre...")
@@ -148,6 +142,7 @@ else:
                     with c5: 
                         st.markdown(f"<p class='nombre-equipo' style='text-align:left;'>{equipos[j]}</p>", unsafe_allow_html=True)
                     
+                    # Se considera jugado si alguno de los valores cambia de 0
                     jugado = (g1 > 0 or g2 > 0)
                     resultados_grupo.append((equipos[i], g1, equipos[j], g2, jugado))
                     if jugado:
@@ -156,6 +151,7 @@ else:
         with col_tabla:
             st.markdown("**📊 Tabla de Posiciones**")
             tabla_f = calcular_tabla(equipos, resultados_grupo)
+            # Resaltar la fila con más puntos
             st.dataframe(tabla_f.style.highlight_max(axis=0, subset=['Pts'], color='#d4edda'), use_container_width=True)
 
     # --- 5. BOTÓN FINAL ---
