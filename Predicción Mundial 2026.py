@@ -5,6 +5,7 @@ from datetime import datetime, timezone, timedelta
 # --- 1. CONFIGURACIÓN Y ESTÉTICA ---
 st.set_page_config(page_title="Predicción Mundial 2026", page_icon="⚽", layout="wide")
 
+# Lógica de Tiempo (Argentina UTC-3)
 AR = timezone(timedelta(hours=-3))
 fecha_limite = datetime(2026, 6, 11, 0, 0, 0, tzinfo=AR)
 ahora = datetime.now(AR)
@@ -23,15 +24,18 @@ st.markdown("""
     .titulo-personalizado {
         font-family: 'Archivo Black', sans-serif;
         color: black;
-        font-size: 3rem !important;
+        font-size: 2.8rem !important;
         text-align: center;
+        margin: 0;
         -webkit-text-stroke: 1.5px white;
+        text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
     }
 
     .titulo-zona { 
         font-family: 'Archivo Black', sans-serif; 
         color: #FF8C00 !important; 
         font-size: 1.8rem !important; 
+        margin-top: 20px; 
         margin-bottom: 15px; 
         border-bottom: 3px solid #FF8C00; 
         width: fit-content; 
@@ -39,7 +43,7 @@ st.markdown("""
 
     .nombre-equipo { font-family: 'Inter', sans-serif; font-size: 1.1rem !important; font-weight: 700 !important; color: #FFFFFF !important; }
 
-    /* Estilo de Tabla con líneas verticales */
+    /* --- ESTILO DE TABLA (image_cbdedd.jpg) --- */
     [data-testid="stTable"] { 
         background-color: rgba(255, 255, 255, 0.05) !important; 
         border-radius: 15px !important; 
@@ -48,13 +52,20 @@ st.markdown("""
     }
     [data-testid="stTable"] td, [data-testid="stTable"] th { 
         color: white !important; 
+        font-family: 'Inter', sans-serif !important; 
         border-bottom: 1px solid rgba(255, 140, 0, 0.3) !important; 
         border-right: 1px solid rgba(255, 140, 0, 0.3) !important; 
         text-align: center !important; 
+        padding: 10px !important; 
+    }
+    [data-testid="stTable"] th { 
+        font-size: 1rem !important; 
+        font-weight: 900 !important; 
+        background-color: rgba(255, 140, 0, 0.15) !important; 
     }
     [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child { border-right: none !important; }
 
-    /* --- LIMPIEZA DE INPUTS (Quita la X y los controles de la imagen image_cbd743.png) --- */
+    /* --- LIMPIEZA DE INPUTS (image_cbd743.png) --- */
     div[data-testid="stNumberInput"] button {
         display: none !important; /* Quita los botones + y - */
     }
@@ -65,15 +76,19 @@ st.markdown("""
         border: 2px solid #FF8C00 !important; 
         font-weight: 900 !important; 
         text-align: center !important;
-        padding-right: 10px !important; /* Ajusta el espacio para que el número quede centrado */
+        padding: 5px !important;
     }
 
-    /* Quita el botón de "clear" (la X) que aparece al escribir */
+    /* Quita la X de borrado */
     button[title="Clear value"] {
         display: none !important;
     }
     </style>
-    """, unsafe_allow_html=True
+    
+    <div style="text-align: center; padding: 15px 0;">
+        <span class="titulo-personalizado">Predicción Mundial 2026</span>
+    </div>
+    """, unsafe_allow_html=True)
 
 # --- 2. LÓGICA DE DATOS ---
 mundial = {
@@ -95,7 +110,6 @@ def calcular_df(equipos, resultados_dict):
     tabla = pd.DataFrame(0, index=equipos, columns=['Pts', 'PJ', 'GF', 'GC', 'DG'])
     tabla.index.name = "Equipos"
     for (e1, e2), (g1, g2) in resultados_dict.items():
-        # Solo suma si ambos valores son distintos de None (es decir, el usuario escribió algo)
         if g1 is not None and g2 is not None:
             tabla.loc[e1, 'PJ'] += 1; tabla.loc[e2, 'PJ'] += 1
             tabla.loc[e1, 'GF'] += g1; tabla.loc[e1, 'GC'] += g2
@@ -110,6 +124,7 @@ def calcular_df(equipos, resultados_dict):
 # --- 3. INTERFAZ ---
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 PUNTAJE FINAL"])
 
+# --- SOLAPA PREDICCIÓN ---
 with tab_p:
     puede_p = ahora < fecha_limite
     st.info("📅 Se puede editar hasta el 10 de Junio de 2026 inclusive.")
@@ -125,7 +140,6 @@ with tab_p:
                     e1, e2 = equipos[i], equipos[j]
                     cols = st.columns([2, 0.7, 0.2, 0.7, 2])
                     cols[0].markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
-                    # value=None hace que el campo aparezca vacío
                     v1 = cols[1].number_input("", 0, 20, value=None, key=f"p1_{e1}_{e2}_{zona}", label_visibility="collapsed", disabled=not puede_p)
                     cols[2].markdown("<p style='text-align:center; color:white;'>•</p>", unsafe_allow_html=True)
                     v2 = cols[3].number_input("", 0, 20, value=None, key=f"p2_{e1}_{e2}_{zona}", label_visibility="collapsed", disabled=not puede_p)
@@ -136,6 +150,7 @@ with tab_p:
     
     st.button("✅ Finalizar Resultados", disabled=not puede_p)
 
+# --- SOLAPA RESULTADOS REALES ---
 with tab_r:
     puede_r = ahora >= fecha_limite
     if not puede_r:
@@ -159,6 +174,7 @@ with tab_r:
         with c2:
             st.table(calcular_df(equipos, dict_r))
 
+# --- SOLAPA PUNTAJE FINAL ---
 with tab_c:
     puntos_totales = 0
     for zona, equipos in mundial.items():
@@ -167,8 +183,8 @@ with tab_c:
         orden_r = calcular_df(equipos, dict_r).index.tolist()
         ca, cb, cc = st.columns(3)
         for idx in range(4):
-            # Lógica de puntaje
-            if any(v is not None for v in sum(dict_r.values(), ())): # Solo puntúa si hay datos reales
+            # Lógica: 2 pts por posición exacta, 1 pt si clasifican los mismos 2 aunque en distinto orden
+            if any(v is not None for v in sum(dict_r.values(), ())):
                 p = 2 if orden_p[idx] == orden_r[idx] else (1 if orden_p[idx] in orden_r[:2] and orden_r[idx] in orden_p[:2] else 0)
             else: p = 0
             puntos_totales += p
