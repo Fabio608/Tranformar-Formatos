@@ -54,6 +54,7 @@ st.markdown("""
         margin-bottom: 10px;
     }
 
+    /* Estilo de tablas */
     [data-testid="stTable"] {
         background-color: rgba(255, 255, 255, 0.05) !important;
         border-radius: 15px !important;
@@ -69,14 +70,8 @@ st.markdown("""
         padding: 12px !important;
     }
     
-    [data-testid="stTable"] th {
-        font-size: 1.2rem !important;
-        font-weight: 700 !important;
-    }
-
-    [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child {
-        border-right: none !important;
-    }
+    [data-testid="stTable"] th { font-size: 1.2rem !important; font-weight: 700 !important; }
+    [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child { border-right: none !important; }
 
     div[data-testid="stNumberInput"] input { 
         background-color: #2c2c2c !important; 
@@ -134,15 +129,19 @@ st.markdown("<h1 class='titulo-principal'>MUNDIAL 2026</h1>", unsafe_allow_html=
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 TABLA DE PUNTOS"])
 
 with tab_p:
-    # NUEVA CORRECCIÓN: Bloqueo de predicción si ya empezó el mundial
+    # Lógica de cierre
     puede_predecir = ahora < fecha_apertura_reales
+    faltan = fecha_apertura_reales - ahora
     
     if puede_predecir:
+        # AVISO VISUAL DE TIEMPO RESTANTE
+        st.info(f"⏳ **TIEMPO RESTANTE PARA EDITAR:** {faltan.days} días, {faltan.seconds//3600} horas y {(faltan.seconds//60)%60} minutos.")
+        st.write("---")
         st.text_input("👤 **TU NOMBRE:**", key="user_name")
     else:
         nombre_usu = st.session_state.get("user_name", "Participante")
         st.markdown(f"### 👤 Participante: {nombre_usu}")
-        st.warning("🔒 Fase de pronósticos cerrada. ¡Mucha suerte con tus predicciones!")
+        st.error("🚫 **TIEMPO AGOTADO:** El periodo de edición finalizó el 11 de junio a las 00:00 hs.")
 
     predicciones_usuario = {}
     for zona, equipos in mundial.items():
@@ -155,7 +154,6 @@ with tab_p:
                     cols = st.columns([2, 0.6, 0.2, 0.6, 2])
                     cols[0].markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
                     
-                    # disabled=not puede_predecir bloquea los números después del 10/06
                     g1 = cols[1].number_input("", 0, 20, 0, key=f"p_{e1}_{e2}_{zona}", 
                                              label_visibility="collapsed", disabled=not puede_predecir)
                     cols[2].markdown("<p style='text-align:center; color:white;'>-</p>", unsafe_allow_html=True)
@@ -173,7 +171,7 @@ with tab_r:
     es_fecha_edicion = ahora >= fecha_apertura_reales
     
     if not es_fecha_edicion:
-        st.warning(f"🔒 MODO LECTURA: La carga de resultados se habilitará el 11 de junio.")
+        st.warning(f"🔒 Los resultados reales se habilitarán automáticamente el **11 de junio de 2026**.")
     
     resultados_oficiales = {}
     for zona, equipos in mundial.items():
@@ -192,7 +190,7 @@ with tab_r:
                         c[4].markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
                         resultados_oficiales[(e1, e2)] = (g1, g2)
             else:
-                st.info(f"Los resultados reales se cargarán aquí al comenzar el Mundial.")
+                st.info("Carga de datos oficiales bloqueada hasta el inicio del torneo.")
 
         with col2:
             st.markdown("<div class='titulo-posiciones'>📊 POSICIONES</div>", unsafe_allow_html=True)
@@ -201,12 +199,8 @@ with tab_r:
 
 with tab_c:
     st.markdown("<h2 style='color:#FF8C00; text-align:center;'>🎯 TABLA GENERAL</h2>", unsafe_allow_html=True)
-    st.write("Cálculo de aciertos y puntajes comparativos.")
+    st.write("Cálculo de aciertos y puntajes.")
 
 st.divider()
 if puede_predecir:
-    if st.button("✅ Guardar Predicción"):
-        st.balloons()
-        st.success("¡Tu predicción ha sido guardada!")
-else:
-    st.button("✅ Guardar Predicción", disabled=True, help="El periodo de predicción terminó.")
+    st.button("✅ Guardar Todo", on_click=lambda: st.balloons())
