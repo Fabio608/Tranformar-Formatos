@@ -5,7 +5,6 @@ from datetime import datetime, timezone, timedelta
 # --- 1. CONFIGURACIÓN Y ESTÉTICA ---
 st.set_page_config(page_title="Predicción Mundial 2026", page_icon="⚽", layout="wide")
 
-# Lógica de Tiempo (Argentina UTC-3)
 AR = timezone(timedelta(hours=-3))
 fecha_limite = datetime(2026, 6, 11, 0, 0, 0, tzinfo=AR)
 ahora = datetime.now(AR)
@@ -43,7 +42,7 @@ st.markdown("""
 
     .nombre-equipo { font-family: 'Inter', sans-serif; font-size: 1.1rem !important; font-weight: 700 !important; color: #FFFFFF !important; }
 
-    /* --- ESTILO DE TABLA (image_cbdedd.jpg) --- */
+    /* --- ESTILO DE TABLA --- */
     [data-testid="stTable"] { 
         background-color: rgba(255, 255, 255, 0.05) !important; 
         border-radius: 15px !important; 
@@ -58,16 +57,24 @@ st.markdown("""
         text-align: center !important; 
         padding: 10px !important; 
     }
-    [data-testid="stTable"] th { 
-        font-size: 1rem !important; 
-        font-weight: 900 !important; 
-        background-color: rgba(255, 140, 0, 0.15) !important; 
-    }
     [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child { border-right: none !important; }
 
-    /* --- LIMPIEZA DE INPUTS (image_cbd743.png) --- */
+    /* --- ELIMINACIÓN DE CONTROLES (X y flechas de image_cb7d44.png) --- */
+    /* Quita las flechas en Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none !important;
+      margin: 0 !important;
+    }
+
+    /* Quita las flechas en Firefox */
+    input[type=number] {
+      -moz-appearance: textfield !important;
+    }
+
+    /* Quita la 'X' de borrado y otros botones de Streamlit */
     div[data-testid="stNumberInput"] button {
-        display: none !important; /* Quita los botones + y - */
+        display: none !important;
     }
     
     div[data-testid="stNumberInput"] input { 
@@ -77,10 +84,11 @@ st.markdown("""
         font-weight: 900 !important; 
         text-align: center !important;
         padding: 5px !important;
+        width: 100% !important;
     }
 
-    /* Quita la X de borrado */
-    button[title="Clear value"] {
+    /* Selector universal para quitar botones de 'clear' */
+    button[title="Clear value"], .st-emotion-cache-10trblm {
         display: none !important;
     }
     </style>
@@ -124,7 +132,6 @@ def calcular_df(equipos, resultados_dict):
 # --- 3. INTERFAZ ---
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 PUNTAJE FINAL"])
 
-# --- SOLAPA PREDICCIÓN ---
 with tab_p:
     puede_p = ahora < fecha_limite
     st.info("📅 Se puede editar hasta el 10 de Junio de 2026 inclusive.")
@@ -150,7 +157,6 @@ with tab_p:
     
     st.button("✅ Finalizar Resultados", disabled=not puede_p)
 
-# --- SOLAPA RESULTADOS REALES ---
 with tab_r:
     puede_r = ahora >= fecha_limite
     if not puede_r:
@@ -174,7 +180,6 @@ with tab_r:
         with c2:
             st.table(calcular_df(equipos, dict_r))
 
-# --- SOLAPA PUNTAJE FINAL ---
 with tab_c:
     puntos_totales = 0
     for zona, equipos in mundial.items():
@@ -183,7 +188,6 @@ with tab_c:
         orden_r = calcular_df(equipos, dict_r).index.tolist()
         ca, cb, cc = st.columns(3)
         for idx in range(4):
-            # Lógica: 2 pts por posición exacta, 1 pt si clasifican los mismos 2 aunque en distinto orden
             if any(v is not None for v in sum(dict_r.values(), ())):
                 p = 2 if orden_p[idx] == orden_r[idx] else (1 if orden_p[idx] in orden_r[:2] and orden_r[idx] in orden_p[:2] else 0)
             else: p = 0
