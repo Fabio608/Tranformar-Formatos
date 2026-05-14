@@ -37,11 +37,11 @@ st.markdown("""
 
     .titulo-zona {
         font-family: 'Archivo Black', sans-serif;
-        color: #000000 !important;
+        color: #FF8C00 !important; /* Anaranjado brillante */
         font-size: 1.8rem !important;
         margin-top: 20px;
         margin-bottom: 15px;
-        border-bottom: 3px solid #1a472a;
+        border-bottom: 3px solid #FF8C00;
         width: fit-content;
     }
 
@@ -94,39 +94,44 @@ mundial = {
     "GRUPO L": ["🇶🇦 Qatar", "🇮🇷 Irán", "🇮🇶 Irak", "🇦🇪 Emiratos Árabes"]
 }
 
+# Función para MI PREDICCIÓN (Nombres completos de columnas)
 def calcular_df_estricto(equipos, resultados_dict):
     tabla = pd.DataFrame({
         'Equipo': equipos, 
-        'Pts': 0, 'PJ': 0, 'GF': 0, 'GC': 0, 'DG': 0
+        'Puntos': 0, 
+        'Partidos Jugados': 0, 
+        'Goles a Favor': 0, 
+        'Goles en Contra': 0, 
+        'Diferencia de Goles': 0
     }).set_index('Equipo')
     
     for (e1, e2), (g1, g2) in resultados_dict.items():
         if e1 in equipos and e2 in equipos:
-            if g1 > 0 or g2 > 0:
-                tabla.loc[e1, 'PJ'] += 1
-                tabla.loc[e2, 'PJ'] += 1
-                tabla.loc[e1, 'GF'] += g1
-                tabla.loc[e1, 'GC'] += g2
-                tabla.loc[e2, 'GF'] += g2
-                tabla.loc[e2, 'GC'] += g1
-                if g1 > g2: tabla.loc[e1, 'Pts'] += 3
-                elif g2 > g1: tabla.loc[e2, 'Pts'] += 3
+            if g1 > 0 or g2 > 0 or (g1 == 0 and g2 == 0 and f"p_{e1}_{e2}" in st.session_state):
+                tabla.loc[e1, 'Partidos Jugados'] += 1
+                tabla.loc[e2, 'Partidos Jugados'] += 1
+                tabla.loc[e1, 'Goles a Favor'] += g1
+                tabla.loc[e1, 'Goles en Contra'] += g2
+                tabla.loc[e2, 'Goles a Favor'] += g2
+                tabla.loc[e2, 'Goles en Contra'] += g1
+                if g1 > g2: tabla.loc[e1, 'Puntos'] += 3
+                elif g2 > g1: tabla.loc[e2, 'Puntos'] += 3
                 else:
-                    tabla.loc[e1, 'Pts'] += 1
-                    tabla.loc[e2, 'Pts'] += 1
-    tabla['DG'] = tabla['GF'] - tabla['GC']
-    return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
+                    tabla.loc[e1, 'Puntos'] += 1
+                    tabla.loc[e2, 'Puntos'] += 1
+    tabla['Diferencia de Goles'] = tabla['Goles a Favor'] - tabla['Goles en Contra']
+    return tabla.sort_values(by=['Puntos', 'Diferencia de Goles', 'Goles a Favor'], ascending=False)
 
 # --- 3. INTERFAZ ---
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 TABLA DE PUNTOS"])
 
-# SOLAPA 1: MI PREDICCIÓN (SIN CAMBIOS)
+# SOLAPA 1: MI PREDICCIÓN
 with tab_p:
     nombre = st.text_input("👤 **TU NOMBRE:**")
     user_input_now = {}
     for zona, equipos in mundial.items():
         st.markdown(f"<div class='titulo-zona'>📍 {zona}</div>", unsafe_allow_html=True)
-        c_partidos, c_tabla = st.columns([1, 1.2])
+        c_partidos, c_tabla = st.columns([1, 1.4]) # Ajuste de ancho para nombres largos
         with c_partidos:
             for i in range(len(equipos)):
                 for j in range(i + 1, len(equipos)):
@@ -165,19 +170,19 @@ with tab_r:
                         with cols[4]: st.markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
                         resultados_reales[(e1, e2)] = (gr1, gr2)
             with cr2:
-                st.markdown("<p class='titulo-posiciones'>📊 SOLO PUNTOS</p>", unsafe_allow_html=True)
-                df_real = pd.DataFrame({'Equipo': equipos, 'Pts': 0}).set_index('Equipo')
+                st.markdown("<p class='titulo-posiciones'>📊 PUNTUACIÓN REAL</p>", unsafe_allow_html=True)
+                df_real = pd.DataFrame({'Equipo': equipos, 'Puntos': 0}).set_index('Equipo')
                 for (eq1, eq2), (v1, v2) in resultados_reales.items():
-                    if v1 > 0 or v2 > 0 or (v1 == 0 and v2 == 0): # Simular carga
-                        if v1 > v2: df_real.loc[eq1, 'Pts'] += 3
-                        elif v2 > v1: df_real.loc[eq2, 'Pts'] += 3
+                    if v1 > 0 or v2 > 0 or (v1 == 0 and v2 == 0):
+                        if v1 > v2: df_real.loc[eq1, 'Puntos'] += 3
+                        elif v2 > v1: df_real.loc[eq2, 'Puntos'] += 3
                         else:
-                            df_real.loc[eq1, 'Pts'] += 1
-                            df_real.loc[eq2, 'Pts'] += 1
-                st.table(df_real.sort_values(by='Pts', ascending=False))
+                            df_real.loc[eq1, 'Puntos'] += 1
+                            df_real.loc[eq2, 'Puntos'] += 1
+                st.table(df_real.sort_values(by='Puntos', ascending=False))
 
 with tab_c:
-    st.write("Ranking de aciertos disponible al inicio del torneo.")
+    st.write("Comparativa de puntos según aciertos.")
 
 st.divider()
 if st.button("✅ Guardar Todo"):
