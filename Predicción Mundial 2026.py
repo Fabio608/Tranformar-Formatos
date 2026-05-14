@@ -34,6 +34,12 @@ st.markdown("""
         margin-bottom: 20px;
     }
 
+    /* Cambio solicitado: Color de etiqueta 'Tu Nombre' a Blanco */
+    div[data-testid="stTextWithActionElements"] label p {
+        color: white !important;
+        font-weight: 700 !important;
+    }
+
     .titulo-zona {
         font-family: 'Archivo Black', sans-serif;
         color: #FF8C00 !important; 
@@ -117,14 +123,12 @@ mundial = {
     }
 
 def calcular_df_estricto(equipos, resultados_dict):
-    # Inicialización en 0
     tabla = pd.DataFrame({
         'Equipo': equipos, 
         'Pts': 0, 'PJ': 0, 'GF': 0, 'GC': 0, 'DG': 0
     }).set_index('Equipo')
     
     for (e1, e2), (g1, g2) in resultados_dict.items():
-        # Solo suma si al menos un input es mayor a 0 (evita el "3" automático si no hay datos)
         if e1 in equipos and e2 in equipos:
             if g1 > 0 or g2 > 0: 
                 tabla.loc[e1, 'PJ'] += 1
