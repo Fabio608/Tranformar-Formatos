@@ -79,7 +79,7 @@ st.markdown("""
         color: white !important;
         font-weight: 600 !important;
         border-bottom: 1px solid rgba(255, 140, 0, 0.3) !important;
-        border-right: 1px solid rgba(255, 140, 0, 0.2) !important; /* Líneas verticales */
+        border-right: 1px solid rgba(255, 140, 0, 0.2) !important;
         text-align: center !important;
     }
     
@@ -117,14 +117,16 @@ mundial = {
     }
 
 def calcular_df_estricto(equipos, resultados_dict):
+    # Inicialización en 0
     tabla = pd.DataFrame({
         'Equipo': equipos, 
         'Pts': 0, 'PJ': 0, 'GF': 0, 'GC': 0, 'DG': 0
     }).set_index('Equipo')
     
     for (e1, e2), (g1, g2) in resultados_dict.items():
+        # Solo suma si al menos un input es mayor a 0 (evita el "3" automático si no hay datos)
         if e1 in equipos and e2 in equipos:
-            if g1 > 0 or g2 > 0 or (g1 == 0 and g2 == 0): 
+            if g1 > 0 or g2 > 0: 
                 tabla.loc[e1, 'PJ'] += 1
                 tabla.loc[e2, 'PJ'] += 1
                 tabla.loc[e1, 'GF'] += g1
@@ -136,6 +138,7 @@ def calcular_df_estricto(equipos, resultados_dict):
                 else:
                     tabla.loc[e1, 'Pts'] += 1
                     tabla.loc[e2, 'Pts'] += 1
+                    
     tabla['DG'] = tabla['GF'] - tabla['GC']
     return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
 
