@@ -2,100 +2,85 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
 
-# --- 1. CONFIGURACIÓN Y ESTÉTICA DE MÁXIMA LEGIBILIDAD ---
+# --- 1. CONFIGURACIÓN Y ESTÉTICA DE IMPACTO ---
 st.set_page_config(page_title="Mundial 2026 - Predicción vs Realidad", page_icon="🏆", layout="wide")
 
 st.markdown("""
     <style>
-    /* Fondo con overlay más oscuro para que resalte el contenedor blanco */
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@900&family=Roboto:wght@400;700;900&display=swap');
+
     .stApp {
-        background: linear-gradient(rgba(0,0,0,0.8), rgba(0,0,0,0.8)), 
+        background: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), 
                     url("https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000");
         background-size: cover;
         background-attachment: fixed;
     }
     
-    /* Contenedor Principal Blanco Opaco (Sin transparencias) */
     .main .block-container {
         background-color: #FFFFFF !important; 
-        border-radius: 15px;
-        padding: 40px;
-        box-shadow: 0px 10px 40px rgba(0,0,0,0.7);
+        border-radius: 20px;
+        padding: 50px;
+        box-shadow: 0px 15px 50px rgba(0,0,0,0.8);
     }
     
-    /* TEXTOS GENERALES (FUERZA NEGRO ABSOLUTO) */
-    span, p, label, .stMarkdown {
-        color: #000000 !important;
-        font-weight: 600;
-    }
-
-    /* NOMBRES DE EQUIPOS */
-    .nombre-equipo {
-        font-size: 1.25rem !important;
-        font-weight: 800 !important;
-        color: #000000 !important; 
-        text-transform: uppercase;
-    }
-
-    .guion {
-        font-size: 1.8rem;
-        font-weight: 900;
-        color: #000000 !important;
+    /* TÍTULO PRINCIPAL ULTRA NEGRITA */
+    .titulo-principal {
+        font-family: 'Playfair Display', serif;
+        color: #1a472a;
         text-align: center;
+        font-weight: 900;
+        font-size: 4rem !important;
+        margin-bottom: 5px;
+        text-transform: uppercase;
+        letter-spacing: -1px;
     }
 
-    /* INPUTS DE GOLES */
-    button.step-up, button.step-down { display: none !important; }
-    div[data-testid="stNumberInput"] { width: 70px !important; margin: 0 auto; }
-    div[data-testid="stNumberInput"] div[data-baseweb="input"] {
-        border: 3px solid #1a472a !important; /* Borde más grueso */
-        border-radius: 8px !important;
-        background-color: #F0F2F6 !important;
+    .subtitulo-app {
+        text-align: center;
+        color: #333;
+        font-size: 1.2rem;
+        font-weight: 700;
+        margin-bottom: 40px;
+        border-bottom: 4px solid #1a472a;
+        display: block;
+        width: fit-content;
+        margin-left: auto;
+        margin-right: auto;
     }
-    input {
-        text-align: center !important;
-        font-size: 1.6rem !important;
+
+    /* TEXTOS Y EQUIPOS */
+    .nombre-equipo {
+        font-family: 'Roboto', sans-serif;
+        font-size: 1.2rem !important;
         font-weight: 900 !important;
-        color: #1a472a !important; /* Verde oscuro para el número */
+        color: #000000 !important;
     }
 
-    /* TÍTULOS PRINCIPALES */
-    h1 { 
-        color: #1a472a !important; 
-        text-align: center; 
-        font-weight: 900; 
-        font-size: 3.5rem !important; 
-        margin-bottom: 20px;
-    }
-    
-    h2, h3 { 
-        color: #000000 !important; 
-        font-weight: 900 !important; 
-        border-bottom: 2px solid #1a472a;
-        padding-bottom: 10px;
-    }
-
-    /* ESTILO DE LAS PESTAÑAS */
-    .stTabs [data-baseweb="tab"] p {
-        font-size: 1.3rem !important;
-        font-weight: 800 !important;
-        color: #444444 !important;
-    }
-    .stTabs [aria-selected="true"] p {
+    /* INPUTS */
+    div[data-testid="stNumberInput"] { width: 75px !important; }
+    input {
+        font-size: 1.7rem !important;
+        font-weight: 900 !important;
         color: #1a472a !important;
+    }
+
+    /* PESTAÑAS */
+    .stTabs [data-baseweb="tab"] p {
+        font-size: 1.4rem !important;
+        font-weight: 900 !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-st.markdown("<h1>🏆 Mundial 2026 - Predicción vs Realidad</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='titulo-principal'>MUNDIAL 2026</h1>", unsafe_allow_html=True)
+st.markdown("<span class='subtitulo-app'>PREDICCIÓN VS REALIDAD</span>", unsafe_allow_html=True)
 
-# --- 2. LÓGICA DE TIEMPO (UTC-3 Argentina) ---
+# --- 2. LÓGICA DE TIEMPO ---
 AR = timezone(timedelta(hours=-3))
 fecha_limite = datetime(2026, 6, 10, 23, 59, 59, tzinfo=AR)
 ahora = datetime.now(AR)
-tiempo_restante = fecha_limite - ahora
 
-# --- 3. DATOS Y CÁLCULOS ---
+# --- 3. DATOS ---
 mundial = {
         "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
         "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
@@ -111,78 +96,77 @@ mundial = {
         "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
     }
 
-def calcular_tabla(equipos, resultados):
-    tabla = pd.DataFrame({'Equipo': equipos, 'Pts': 0, 'PJ': 0, 'GF': 0, 'GC': 0, 'DG': 0}).set_index('Equipo')
-    for res in resultados:
-        e1, g1, e2, g2, jugado = res
-        if jugado:
-            tabla.loc[e1, 'PJ'] += 1; tabla.loc[e2, 'PJ'] += 1
-            tabla.loc[e1, 'GF'] += g1; tabla.loc[e1, 'GC'] += g2
-            tabla.loc[e2, 'GF'] += g2; tabla.loc[e2, 'GC'] += g1
-            if g1 > g2: tabla.loc[e1, 'Pts'] += 3
-            elif g2 > g1: tabla.loc[e2, 'Pts'] += 3
-            else: tabla.loc[e1, 'Pts'] += 1; tabla.loc[e2, 'Pts'] += 1
-    tabla['DG'] = tabla['GF'] - tabla['GC']
-    return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
+# Simulamos resultados reales cargados (Aquí es donde se actualizaría el mundial)
+datos_oficiales = {
+    ("🇦🇷 Argentina", "🇫🇷 Francia"): (2, 1),
+    ("🇲🇽 México", "🇺🇸 EE.UU."): (1, 1),
+}
+
+def calcular_puntos(p_g1, p_g2, r_g1, r_g2):
+    if p_g1 == r_g1 and p_g2 == r_g2: return 3 # Acierto exacto
+    if (p_g1 > p_g2 and r_g1 > r_g2) or (p_g1 < p_g2 and r_g1 < r_g2) or (p_g1 == p_g2 and r_g1 == r_g2):
+        return 1 # Acierto tendencia
+    return 0
 
 # --- 4. INTERFAZ ---
-if ahora > fecha_limite:
-    st.error("❌ El plazo de entrega finalizó el 10 de junio a las 23:59 (Hora Local Argentina).")
-else:
-    tab_pred, tab_real = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES"])
+tab_pred, tab_real, tab_comp = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 TABLA DE PUNTOS"])
 
-    with tab_pred:
-        st.markdown(f"🗓️ **LÍMITE:** 10/06/2026 23:59hs | ⏳ **FALTAN:** {tiempo_restante.days} días y {tiempo_restante.seconds//3600} horas.")
-        nombre = st.text_input("👤 **ESCRIBE TU NOMBRE AQUÍ:**", placeholder="Tu nombre...")
+user_preds = {}
+
+with tab_pred:
+    nombre = st.text_input("👤 **TU NOMBRE:**", key="user_name")
+    for zona, equipos in mundial.items():
+        st.subheader(f"📍 {zona}")
+        col_p, col_t = st.columns([1.5, 1])
+        with col_p:
+            for i in range(len(equipos)):
+                for j in range(i + 1, len(equipos)):
+                    e1, e2 = equipos[i], equipos[j]
+                    c1, c2, c3, c4, c5 = st.columns([2, 0.8, 0.2, 0.8, 2])
+                    with c1: st.markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
+                    with c2: g1 = st.number_input("", 0, 20, 0, key=f"up_{e1}_{e2}")
+                    with c3: st.markdown("<p style='text-align:center; font-weight:900;'>-</p>", unsafe_allow_html=True)
+                    with c4: g2 = st.number_input("", 0, 20, 0, key=f"up2_{e1}_{e2}")
+                    with c5: st.markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
+                    user_preds[(e1, e2)] = (g1, g2)
+
+with tab_real:
+    st.header("🏁 Marcadores Oficiales")
+    for (e1, e2), (r1, r2) in datos_oficiales.items():
+        st.write(f"✅ **{e1}** {r1} - {r2} **{e2}**")
+
+with tab_comp:
+    st.header("🎯 Comparativa y Puntaje")
+    if not nombre:
+        st.warning("Ingresá tu nombre en la primera pestaña para ver tu puntaje.")
+    else:
+        total_puntos = 0
+        data_comp = []
         
-        predicciones_mensaje = []
-
-        for zona, equipos in mundial.items():
-            st.subheader(f"📍 {zona}")
-            col_partidos, col_tabla = st.columns([1.3, 1])
-            res_usuario = []
-            
-            with col_partidos:
-                for i in range(len(equipos)):
-                    for j in range(i + 1, len(equipos)):
-                        c1, c2, c3, c4, c5 = st.columns([2, 0.7, 0.3, 0.7, 2])
-                        with c1: st.markdown(f"<p class='nombre-equipo' style='text-align:right;'>{equipos[i]}</p>", unsafe_allow_html=True)
-                        with c2: g1 = st.number_input("", 0, 20, 0, key=f"v_{zona}_{i}_{j}", label_visibility="collapsed")
-                        with c3: st.markdown("<p class='guion'>-</p>", unsafe_allow_html=True)
-                        with c4: g2 = st.number_input("", 0, 20, 0, key=f"v2_{zona}_{i}_{j}", label_visibility="collapsed")
-                        with c5: st.markdown(f"<p class='nombre-equipo' style='text-align:left;'>{equipos[j]}</p>", unsafe_allow_html=True)
-                        
-                        jugado = (g1 > 0 or g2 > 0)
-                        res_usuario.append((equipos[i], g1, equipos[j], g2, jugado))
-                        if jugado: predicciones_mensaje.append(f"{equipos[i]} {g1}-{g2} {equipos[j]}")
-            
-            with col_tabla:
-                st.markdown("<p style='color:#000; font-weight:bold;'>📊 TU POSICIONES:</p>", unsafe_allow_html=True)
-                tabla_est = calcular_tabla(equipos, res_usuario)
-                st.dataframe(tabla_est.style.set_properties(**{'color': 'black', 'font-weight': 'bold'}), use_container_width=True)
-
-        st.divider()
-        if st.button("✅ Finalizar y Compartir"):
-            if nombre and predicciones_mensaje:
-                resumen = f"🏆 PREDICCIÓN MUNDIAL 2026\n👤 JUGADOR: {nombre.upper()}\n" + "="*25 + "\n"
-                resumen += "\n".join(predicciones_mensaje)
-                st.success("✅ ¡Pronóstico generado! Copia el texto:")
-                st.code(resumen, language="text")
-                st.balloons()
-            else:
-                st.warning("⚠️ Por favor, ingresa tu nombre y al menos un marcador.")
-
-    with tab_real:
-        st.header("🏁 Resultados Oficiales")
-        st.write("Consulta aquí el avance real del torneo.")
+        for (e1, e2), (p1, p2) in user_preds.items():
+            if (e1, e2) in datos_oficiales:
+                r1, r2 = datos_oficiales[(e1, e2)]
+                puntos = calcular_puntos(p1, p2, r1, r2)
+                total_puntos += puntos
+                data_comp.append({
+                    "Partido": f"{e1} vs {e2}",
+                    "Tu Predicción": f"{p1}-{p2}",
+                    "Resultado Real": f"{r1}-{r2}",
+                    "Puntos Ganados": puntos
+                })
         
-        # Datos de ejemplo (se actualizan manualmente en el código)
-        datos_oficiales = [
-            ("🇦🇷 Argentina", 1, "🇫🇷 Francia", 0, True)
-        ]
-        
-        for zona, equipos in mundial.items():
-            st.subheader(f"Estado Oficial {zona}")
-            res_filtrados = [r for r in datos_oficiales if r[0] in equipos]
-            tabla_real_df = calcular_tabla(equipos, res_filtrados)
-            st.table(tabla_real_df.style.set_properties(**{'background-color': '#f0f0f0', 'color': 'black', 'font-weight': 'bold'}))
+        if data_comp:
+            st.table(pd.DataFrame(data_comp))
+            st.markdown(f"""
+                <div style='background-color:#1a472a; padding:20px; border-radius:10px; text-align:center;'>
+                    <h2 style='color:white; margin:0;'>TOTAL PUNTOS DE {nombre.upper()}: {total_puntos}</h2>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.info("Aún no hay resultados oficiales cargados para comparar con tus predicciones.")
+
+# Botón Final
+st.divider()
+if st.button("🚀 Finalizar y Compartir"):
+    st.balloons()
+    st.success("¡Copiá tus resultados y compartilos!")
