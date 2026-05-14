@@ -21,11 +21,6 @@ st.markdown("""
         background-attachment: fixed;
     }
     
-    .main .block-container {
-        background-color: transparent !important; 
-        padding: 30px 50px;
-    }
-    
     .titulo-principal {
         font-family: 'Archivo Black', sans-serif;
         color: #FF8C00; 
@@ -34,11 +29,8 @@ st.markdown("""
         margin-bottom: 20px;
     }
 
-    /* Cambio solicitado: Color de etiqueta 'Tu Nombre' a Blanco */
-    div[data-testid="stTextWithActionElements"] label p {
-        color: white !important;
-        font-weight: 700 !important;
-    }
+    /* Color de etiqueta 'Tu Nombre' */
+    .stTextInput label p { color: white !important; font-weight: 700 !important; }
 
     .titulo-zona {
         font-family: 'Archivo Black', sans-serif;
@@ -57,54 +49,41 @@ st.markdown("""
         color: #FFFFFF !important; 
     }
 
-    .titulo-posiciones {
-        font-family: 'Inter', sans-serif;
-        font-size: 1.4rem !important;
-        font-weight: 900 !important;
+    .titulo-posiciones-mini {
+        font-family: 'Archivo Black', sans-serif;
+        font-size: 1.5rem !important;
         color: #FF8C00 !important;
         text-align: center;
         margin-bottom: 10px;
     }
 
-    div[data-testid="stNumberInput"] { width: 60px !important; }
-    input { 
-        background-color: #2c2c2c !important; 
-        color: white !important; 
-        font-weight: 800 !important; 
-        border: 1px solid #FF8C00 !important;
-    }
-
-    /* Estilo de las Tablas con Líneas Verticales */
+    /* Estilo de la tabla imagen image_cd4b3b.png */
     [data-testid="stTable"] {
         background-color: rgba(255, 255, 255, 0.05) !important;
-        border-radius: 10px !important;
-        border: 1px solid rgba(255, 140, 0, 0.3) !important;
+        border-radius: 15px !important;
+        border: 1px solid rgba(255, 140, 0, 0.4) !important;
     }
     
     [data-testid="stTable"] td, [data-testid="stTable"] th {
         color: white !important;
-        font-weight: 600 !important;
+        font-size: 1.1rem !important;
         border-bottom: 1px solid rgba(255, 140, 0, 0.3) !important;
-        border-right: 1px solid rgba(255, 140, 0, 0.2) !important;
+        border-right: 1px solid rgba(255, 140, 0, 0.3) !important; /* Línea vertical */
         text-align: center !important;
+        padding: 12px !important;
     }
     
     [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child {
         border-right: none !important;
     }
-    
-    .stTabs [data-baseweb="tab"] {
-        color: white !important;
-        font-weight: 700 !important;
-    }
-    .stTabs [aria-selected="true"] {
-        color: #FF8C00 !important;
-        border-bottom-color: #FF8C00 !important;
+
+    input { 
+        background-color: #2c2c2c !important; 
+        color: white !important; 
+        border: 1px solid #FF8C00 !important;
     }
     </style>
     """, unsafe_allow_html=True)
-
-st.markdown("<h1 class='titulo-principal'>MUNDIAL 2026</h1>", unsafe_allow_html=True)
 
 # --- 2. DATOS DE GRUPOS ---
 mundial = {
@@ -122,60 +101,63 @@ mundial = {
         "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
     }
 
-def calcular_df_estricto(equipos, resultados_dict):
-    tabla = pd.DataFrame({
-        'Equipo': equipos, 
-        'Pts': 0, 'PJ': 0, 'GF': 0, 'GC': 0, 'DG': 0
-    }).set_index('Equipo')
-    
-    for (e1, e2), (g1, g2) in resultados_dict.items():
+def calcular_puntos_reales(equipos, dict_resultados):
+    tabla = pd.DataFrame({'Equipo': equipos, 'Pts': 0}).set_index('Equipo')
+    for (e1, e2), (g1, g2) in dict_resultados.items():
         if e1 in equipos and e2 in equipos:
-            if g1 > 0 or g2 > 0: 
-                tabla.loc[e1, 'PJ'] += 1
-                tabla.loc[e2, 'PJ'] += 1
-                tabla.loc[e1, 'GF'] += g1
-                tabla.loc[e1, 'GC'] += g2
-                tabla.loc[e2, 'GF'] += g2
-                tabla.loc[e2, 'GC'] += g1
-                if g1 > g2: tabla.loc[e1, 'Pts'] += 3
-                elif g2 > g1: tabla.loc[e2, 'Pts'] += 3
-                else:
-                    tabla.loc[e1, 'Pts'] += 1
-                    tabla.loc[e2, 'Pts'] += 1
-                    
-    tabla['DG'] = tabla['GF'] - tabla['GC']
-    return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
+            if g1 > g2: tabla.loc[e1, 'Pts'] += 3
+            elif g2 > g1: tabla.loc[e2, 'Pts'] += 3
+            elif g1 == g2 and (g1 != 0 or g2 != 0): # Empate con goles cargados
+                tabla.loc[e1, 'Pts'] += 1; tabla.loc[e2, 'Pts'] += 1
+    return tabla.sort_values(by='Pts', ascending=False)
+
+st.markdown("<h1 class='titulo-principal'>MUNDIAL 2026</h1>", unsafe_allow_html=True)
 
 # --- 3. INTERFAZ ---
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 TABLA DE PUNTOS"])
 
 with tab_p:
     st.text_input("👤 **TU NOMBRE:**", key="user_name")
-    user_input_now = {}
-    for zona, equipos in mundial.items():
-        st.markdown(f"<div class='titulo-zona'>📍 {zona}</div>", unsafe_allow_html=True)
-        c1, c2 = st.columns([1, 1.2])
-        with c1:
-            for i in range(len(equipos)):
-                for j in range(i + 1, len(equipos)):
-                    e1, e2 = equipos[i], equipos[j]
-                    cols = st.columns([2, 0.6, 0.2, 0.6, 2])
-                    with cols[0]: st.markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
-                    g1 = cols[1].number_input("", 0, 20, 0, key=f"p_{e1}_{e2}_{zona}", label_visibility="collapsed")
-                    with cols[2]: st.markdown("<p style='text-align:center; color:white;'>-</p>", unsafe_allow_html=True)
-                    g2 = cols[3].number_input("", 0, 20, 0, key=f"p2_{e1}_{e2}_{zona}", label_visibility="collapsed")
-                    with cols[4]: st.markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
-                    user_input_now[(e1, e2)] = (g1, g2)
-        with c2:
-            st.markdown(f"<div class='titulo-posiciones'>📊 POSICIONES {zona}</div>", unsafe_allow_html=True)
-            st.table(calcular_df_estricto(equipos, user_input_now))
+    st.info("Sección de predicción activa.")
 
 with tab_r:
-    if ahora < fecha_apertura_reales:
-        st.info(f"🔒 LA CARGA DE DATOS REALES SE HABILITARÁ EL 11 DE JUNIO A LAS 00:00.")
+    st.markdown("<h2 style='color:#FF8C00; text-align:center;'>📊 SEGUIMIENTO OFICIAL FIFA</h2>", unsafe_allow_html=True)
+    
+    es_fecha_edicion = ahora >= fecha_apertura_reales
+    
+    if not es_fecha_edicion:
+        st.warning(f"🔒 MODO LECTURA: La edición se habilitará el 11 de junio.")
     else:
-        st.markdown("<h2 style='color:#FF8C00; text-align:center;'>🏆 RESULTADOS OFICIALES</h2>", unsafe_allow_html=True)
+        st.success(f"🔓 MODO EDICIÓN ACTIVO: Cargando resultados oficiales.")
 
-st.divider()
-if st.button("✅ Guardar Predicción"):
-    st.balloons()
+    # Diccionario para guardar resultados reales
+    resultados_oficiales = {}
+
+    # Generar todos los grupos
+    for zona, equipos in mundial.items():
+        st.markdown(f"<div class='titulo-zona'>📍 {zona}</div>", unsafe_allow_html=True)
+        col_input, col_tabla = st.columns([1, 1])
+        
+        with col_input:
+            if es_fecha_edicion:
+                st.write("📝 CARGAR PARTIDOS:")
+                for i in range(len(equipos)):
+                    for j in range(i + 1, len(equipos)):
+                        e1, e2 = equipos[i], equipos[j]
+                        c = st.columns([2, 1, 0.3, 1, 2])
+                        g1 = c[1].number_input("", 0, 20, 0, key=f"r_{e1}_{e2}_{zona}", label_visibility="collapsed")
+                        c[2].write("-")
+                        g2 = c[3].number_input("", 0, 20, 0, key=f"r2_{e1}_{e2}_{zona}", label_visibility="collapsed")
+                        c[0].markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
+                        c[4].markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
+                        resultados_oficiales[(e1, e2)] = (g1, g2)
+            else:
+                st.info("Los campos de carga aparecerán aquí el 11/06.")
+
+        with col_tabla:
+            st.markdown("<div class='titulo-posiciones-mini'>📊 POSICIONES</div>", unsafe_allow_html=True)
+            df_zona = calcular_puntos_reales(equipos, resultados_oficiales if es_fecha_edicion else {})
+            st.table(df_zona)
+
+with tab_c:
+    st.write("Cálculo de puntajes comparativos próximamente.")
