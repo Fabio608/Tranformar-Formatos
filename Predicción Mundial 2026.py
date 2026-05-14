@@ -28,7 +28,7 @@ st.markdown("""
     
     .titulo-principal {
         font-family: 'Archivo Black', sans-serif;
-        color: #FF8C00; /* Naranja */
+        color: #FF8C00; 
         text-align: center;
         font-size: 3.5rem !important;
         margin-bottom: 20px;
@@ -36,7 +36,7 @@ st.markdown("""
 
     .titulo-zona {
         font-family: 'Archivo Black', sans-serif;
-        color: #FF8C00 !important; /* Títulos de Zona en Naranja */
+        color: #FF8C00 !important; 
         font-size: 1.8rem !important;
         margin-top: 20px;
         margin-bottom: 15px;
@@ -48,7 +48,7 @@ st.markdown("""
         font-family: 'Inter', sans-serif;
         font-size: 1.1rem !important;
         font-weight: 700 !important;
-        color: #FFFFFF !important; /* Nombres de equipos en Blanco */
+        color: #FFFFFF !important; 
     }
 
     .titulo-posiciones {
@@ -60,7 +60,6 @@ st.markdown("""
         margin-bottom: 10px;
     }
 
-    /* Estilo para los inputs de goles */
     div[data-testid="stNumberInput"] { width: 60px !important; }
     input { 
         background-color: #2c2c2c !important; 
@@ -69,18 +68,25 @@ st.markdown("""
         border: 1px solid #FF8C00 !important;
     }
 
-    /* Estilo de las Tablas */
+    /* Estilo de las Tablas con Líneas Verticales */
     [data-testid="stTable"] {
         background-color: rgba(255, 255, 255, 0.05) !important;
         border-radius: 10px !important;
+        border: 1px solid rgba(255, 140, 0, 0.3) !important;
     }
+    
     [data-testid="stTable"] td, [data-testid="stTable"] th {
         color: white !important;
         font-weight: 600 !important;
         border-bottom: 1px solid rgba(255, 140, 0, 0.3) !important;
+        border-right: 1px solid rgba(255, 140, 0, 0.2) !important; /* Líneas verticales */
+        text-align: center !important;
     }
     
-    /* Pestañas */
+    [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child {
+        border-right: none !important;
+    }
+    
     .stTabs [data-baseweb="tab"] {
         color: white !important;
         font-weight: 700 !important;
@@ -118,7 +124,7 @@ def calcular_df_estricto(equipos, resultados_dict):
     
     for (e1, e2), (g1, g2) in resultados_dict.items():
         if e1 in equipos and e2 in equipos:
-            if g1 > 0 or g2 > 0 or (g1 == 0 and g2 == 0): # Se cuenta si hay interacción
+            if g1 > 0 or g2 > 0 or (g1 == 0 and g2 == 0): 
                 tabla.loc[e1, 'PJ'] += 1
                 tabla.loc[e2, 'PJ'] += 1
                 tabla.loc[e1, 'GF'] += g1
@@ -162,9 +168,7 @@ with tab_r:
         st.info(f"🔒 LA CARGA DE DATOS REALES SE HABILITARÁ EL 11 DE JUNIO A LAS 00:00.")
     else:
         st.markdown("<h2 style='color:#FF8C00; text-align:center;'>🏆 RESULTADOS OFICIALES</h2>", unsafe_allow_html=True)
-        # Lógica similar a tab_p pero para datos oficiales...
 
 st.divider()
 if st.button("✅ Guardar Predicción"):
     st.balloons()
-    st.success("¡Predicción guardada correctamente!")
