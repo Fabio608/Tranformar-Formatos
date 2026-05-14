@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
 
-# --- 1. ESTÉTICA DE MÁXIMA LEGIBILIDAD Y DISEÑO PROFESIONAL ---
+# --- 1. ESTÉTICA REFINADA ---
 st.set_page_config(page_title="Mundial 2026 - Predicción vs Realidad", page_icon="🏆", layout="wide")
 
 st.markdown("""
@@ -19,53 +19,57 @@ st.markdown("""
     .main .block-container {
         background-color: #FFFFFF !important; 
         border-radius: 20px;
-        padding: 50px;
-        box-shadow: 0px 15px 50px rgba(0,0,0,0.9);
+        padding: 30px 50px;
     }
     
     .titulo-principal {
         font-family: 'Archivo Black', sans-serif;
         color: #1a472a;
         text-align: center;
-        font-size: 4rem !important;
+        font-size: 3.5rem !important;
         margin-bottom: 0px;
         text-transform: uppercase;
-        text-shadow: 3px 3px 0px #e0e0e0;
     }
 
     .subtitulo-app {
         text-align: center;
-        color: #000000;
+        color: #000;
         font-family: 'Inter', sans-serif;
-        font-size: 1.4rem;
-        font-weight: 900;
-        margin-bottom: 40px;
-        border-bottom: 6px solid #1a472a;
+        font-size: 1.2rem;
+        font-weight: 800;
+        margin-bottom: 30px;
+        border-bottom: 4px solid #1a472a;
         display: block;
         width: fit-content;
         margin-left: auto;
         margin-right: auto;
-        padding-bottom: 5px;
     }
 
-    /* EQUIPOS Y TEXTOS EN NEGRO ABSOLUTO */
+    /* INPUTS MÁS PEQUEÑOS Y ESTÉTICOS (Como en image_d89186.jpg) */
+    div[data-testid="stNumberInput"] {
+        width: 60px !important;
+    }
+    div[data-testid="stNumberInput"] div[data-baseweb="input"] {
+        background-color: #f1f3f4 !important;
+        border-radius: 10px !important;
+        border: none !important;
+    }
+    input {
+        font-size: 1.2rem !important;
+        font-weight: 700 !important;
+        padding: 5px !important;
+    }
+
     .nombre-equipo {
         font-family: 'Inter', sans-serif;
-        font-size: 1.3rem !important;
-        font-weight: 900 !important;
-        color: #000000 !important;
+        font-size: 1.1rem !important;
+        font-weight: 700 !important;
+        color: #333 !important;
     }
 
-    h3 { color: #000000 !important; font-weight: 900 !important; }
-
-    /* ESTILO PESTAÑAS */
-    .stTabs [data-baseweb="tab"] p {
-        font-size: 1.4rem !important;
-        font-weight: 900 !important;
-        color: #333333 !important;
-    }
-    .stTabs [aria-selected="true"] p {
-        color: #1a472a !important;
+    /* TABLAS */
+    .styled-table {
+        font-size: 0.9rem;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -73,8 +77,7 @@ st.markdown("""
 st.markdown("<h1 class='titulo-principal'>MUNDIAL 2026</h1>", unsafe_allow_html=True)
 st.markdown("<span class='subtitulo-app'>PREDICCIÓN VS REALIDAD</span>", unsafe_allow_html=True)
 
-# --- 2. DATOS Y MUNDIAL ---
-AR = timezone(timedelta(hours=-3))
+# --- 2. LÓGICA DE DATOS ---
 mundial = {
         "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
         "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
@@ -90,95 +93,109 @@ mundial = {
         "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
     }
 
-# RESULTADOS REALES (Aquí cargarás lo que pase en el mundial)
+# Simulador de resultados oficiales (A actualizar manualmente)
 datos_oficiales = {
     ("🇦🇷 Argentina", "🇫🇷 Francia"): (2, 1),
     ("🇲🇽 México", "🇺🇸 EE.UU."): (1, 1),
 }
 
-def calcular_df_tabla(equipos, resultados_dict):
-    tabla = pd.DataFrame({'Equipo': equipos, 'Pts': 0, 'PJ': 0, 'DG': 0}).set_index('Equipo')
+def calcular_df_tabla_completa(equipos, resultados_dict):
+    # Columnas solicitadas: Equipo, Pts, PJ, GF, GC, DG
+    tabla = pd.DataFrame({
+        'Equipo': equipos, 
+        'Pts': 0, 'PJ': 0, 'GF': 0, 'GC': 0, 'DG': 0
+    }).set_index('Equipo')
+    
     for (e1, e2), (g1, g2) in resultados_dict.items():
         if e1 in equipos and e2 in equipos:
-            tabla.loc[e1, 'PJ'] += 1; tabla.loc[e2, 'PJ'] += 1
-            tabla.loc[e1, 'DG'] += (g1 - g2); tabla.loc[e2, 'DG'] += (g2 - g1)
+            # Solo contamos si al menos uno puso un gol o se marcó como jugado
+            tabla.loc[e1, 'PJ'] += 1
+            tabla.loc[e2, 'PJ'] += 1
+            tabla.loc[e1, 'GF'] += g1
+            tabla.loc[e1, 'GC'] += g2
+            tabla.loc[e2, 'GF'] += g2
+            tabla.loc[e2, 'GC'] += g1
+            
             if g1 > g2: tabla.loc[e1, 'Pts'] += 3
             elif g2 > g1: tabla.loc[e2, 'Pts'] += 3
-            else: 
-                tabla.loc[e1, 'Pts'] += 1; tabla.loc[e2, 'Pts'] += 1
-    return tabla.sort_values(by=['Pts', 'DG'], ascending=False)
+            else:
+                tabla.loc[e1, 'Pts'] += 1
+                tabla.loc[e2, 'Pts'] += 1
+                
+    tabla['DG'] = tabla['GF'] - tabla['GC']
+    return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
 
-# --- 3. INTERFAZ ---
+# --- 3. INTERFAZ POR PESTAÑAS ---
 tab_pred, tab_real, tab_comp = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 TABLA DE PUNTOS"])
 
 user_preds_dict = {}
 
 with tab_pred:
-    nombre = st.text_input("👤 **TU NOMBRE:**", key="user_name", placeholder="Ej: Lionel")
+    nombre = st.text_input("👤 **TU NOMBRE:**", placeholder="Lionel Messi...")
+    
     for zona, equipos in mundial.items():
-        st.subheader(f"📍 {zona}")
-        col_p, col_t = st.columns([1.5, 1])
-        with col_p:
+        st.markdown(f"### 📍 {zona}")
+        col_partidos, col_tabla = st.columns([1.2, 1])
+        
+        with col_partidos:
             for i in range(len(equipos)):
                 for j in range(i + 1, len(equipos)):
                     e1, e2 = equipos[i], equipos[j]
-                    c1, c2, c3, c4, c5 = st.columns([2, 0.8, 0.2, 0.8, 2])
+                    c1, c2, c3, c4, c5 = st.columns([2, 0.6, 0.2, 0.6, 2])
                     with c1: st.markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
-                    with c2: g1 = st.number_input("", 0, 20, 0, key=f"p_{e1}_{e2}")
-                    with c3: st.markdown("<p style='text-align:center; font-weight:900;'>-</p>", unsafe_allow_html=True)
-                    with c4: g2 = st.number_input("", 0, 20, 0, key=f"p2_{e1}_{e2}")
+                    with c2: g1 = st.number_input("", 0, 20, 0, key=f"up_{e1}_{e2}", label_visibility="collapsed")
+                    with c3: st.markdown("<p style='text-align:center; font-weight:bold; margin-top:5px;'>-</p>", unsafe_allow_html=True)
+                    with c4: g2 = st.number_input("", 0, 20, 0, key=f"up2_{e1}_{e2}", label_visibility="collapsed")
                     with c5: st.markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
                     user_preds_dict[(e1, e2)] = (g1, g2)
-        with col_t:
-            st.markdown("**📊 TU TABLA PROVISORIA**")
-            st.dataframe(calcular_df_tabla(equipos, user_preds_dict), use_container_width=True)
+        
+        with col_tabla:
+            st.markdown("<p style='font-weight:800; color:#1a472a;'>📊 POSICIONES ESTIMADAS</p>", unsafe_allow_html=True)
+            df_u = calcular_df_tabla_completa(equipos, user_preds_dict)
+            st.dataframe(df_u, use_container_width=True)
 
 with tab_real:
-    st.header("🏁 Marcadores y Posiciones Oficiales")
+    st.header("🏁 Realidad del Torneo")
     for zona, equipos in mundial.items():
-        st.subheader(f"Estado {zona}")
-        col_rp, col_rt = st.columns([1, 1])
-        with col_rp:
+        st.subheader(f"{zona} - Oficial")
+        col_r1, col_r2 = st.columns([1, 1.2])
+        with col_r1:
             for (e1, e2), (r1, r2) in datos_oficiales.items():
-                if e1 in equipos: st.markdown(f"✅ **{e1}** {r1} — {r2} **{e2}**")
-        with col_rt:
-            st.dataframe(calcular_df_tabla(equipos, datos_oficiales), use_container_width=True)
+                if e1 in equipos:
+                    st.markdown(f"⚽ **{e1}** {r1} - {r2} **{e2}**")
+        with col_r2:
+            df_r = calcular_df_tabla_completa(equipos, datos_oficiales)
+            st.dataframe(df_r, use_container_width=True)
 
 with tab_comp:
     if not nombre:
-        st.warning("Escribe tu nombre en la pestaña de Predicción.")
+        st.info("Completa tu nombre para ver el análisis de puntos.")
     else:
-        st.header(f"📊 Puntaje de {nombre.upper()}")
-        p_partidos, p_posiciones = 0, 0
-        detalles = []
-
+        st.header(f"🎯 Resumen para {nombre.upper()}")
+        pts_partido = 0
+        pts_posicion = 0
+        
         for zona, equipos in mundial.items():
-            st.subheader(f"Comparativa {zona}")
-            orden_real = calcular_df_tabla(equipos, datos_oficiales).index.tolist()
-            orden_pred = calcular_df_tabla(equipos, user_preds_dict).index.tolist()
+            # Comparación de tablas
+            real_rank = calcular_df_tabla_completa(equipos, datos_oficiales).index.tolist()
+            user_rank = calcular_df_tabla_completa(equipos, user_preds_dict).index.tolist()
             
-            c1, c2 = st.columns(2)
-            c1.write("**Tu Predicción:** " + " > ".join(orden_pred))
-            c2.write("**Realidad:** " + " > ".join(orden_real))
-            
-            for idx in range(len(orden_real)):
-                if orden_real[idx] == orden_pred[idx]:
-                    p_posiciones += 2
-                    st.success(f"🎯 Acertaste el {idx+1}° puesto de {orden_real[idx]} (+2 pts)")
-
-        # Cálculo de puntos por partido
+            for idx in range(len(real_rank)):
+                if real_rank[idx] == user_rank[idx]:
+                    pts_posicion += 2
+        
         for (e1, e2), (p1, p2) in user_preds_dict.items():
             if (e1, e2) in datos_oficiales:
                 r1, r2 = datos_oficiales[(e1, e2)]
-                pts = 3 if (p1 == r1 and p2 == r2) else (1 if (p1>p2 and r1>r2) or (p1<p2 and r1<r2) or (p1==p2 and r1==r2) else 0)
-                p_partidos += pts
-                detalles.append({"Partido": f"{e1}-{e2}", "Tu Pred.": f"{p1}-{p2}", "Real": f"{r1}-{r2}", "Pts": pts})
-
-        st.divider()
-        st.metric("PUNTOS TOTALES", p_partidos + p_posiciones, f"Partidos: {p_partidos} | Posiciones: {p_posiciones}")
-        if detalles: st.table(pd.DataFrame(detalles))
+                if p1 == r1 and p2 == r2: pts_partido += 3
+                elif (p1>p2 and r1>r2) or (p1<p2 and r1<r2) or (p1==p2 and r1==r2): pts_partido += 1
+        
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Puntos Partidos", pts_partido)
+        c2.metric("Puntos Posición", pts_posicion)
+        c3.metric("TOTAL", pts_partido + pts_posicion)
 
 st.divider()
-if st.button("🚀 Finalizar y Compartir"):
+if st.button("✅ Finalizar y Compartir"):
     st.balloons()
-    st.success("¡Progreso completado!")
+    st.success("¡Predicción lista! Ya puedes capturar pantalla o copiar tus resultados.")
