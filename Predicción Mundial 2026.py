@@ -20,7 +20,6 @@ st.markdown("""
         background-attachment: fixed;
     }
 
-    /* Animación de Pelotas Rebotando */
     @keyframes bounce {
         0%, 100% { transform: translateY(0); }
         50% { transform: translateY(-10px); }
@@ -28,20 +27,19 @@ st.markdown("""
     .soccer-icon {
         display: inline-block;
         animation: bounce 2s infinite ease-in-out;
-        font-size: 3rem;
-        margin: 0 10px;
+        font-size: 2.5rem;
+        margin: 0 8px;
     }
 
-    /* Título Negro con Borde Blanco */
+    /* Título Negro con Borde Blanco - Tamaño Reducido */
     .titulo-personalizado {
         font-family: 'Archivo Black', sans-serif;
         color: black;
-        font-size: 4.5rem !important;
+        font-size: 3.2rem !important;
         text-align: center;
         margin: 0;
-        /* Efecto de borde blanco (text-stroke) */
-        -webkit-text-stroke: 2px white;
-        text-shadow: 3px 3px 0px rgba(0,0,0,0.2);
+        -webkit-text-stroke: 1.5px white;
+        text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
     }
 
     .titulo-zona { 
@@ -55,7 +53,14 @@ st.markdown("""
     }
 
     .nombre-equipo { font-family: 'Inter', sans-serif; font-size: 1.1rem !important; font-weight: 700 !important; color: #FFFFFF !important; }
-    
+    .titulo-posiciones { font-family: 'Archivo Black', sans-serif; font-size: 1.6rem !important; color: #FF8C00 !important; text-align: center; margin-bottom: 10px; }
+
+    /* Estilo de Tablas Original */
+    [data-testid="stTable"] { background-color: rgba(255, 255, 255, 0.05) !important; border-radius: 15px !important; border: 1px solid rgba(255, 140, 0, 0.4) !important; }
+    [data-testid="stTable"] td, [data-testid="stTable"] th { color: white !important; font-family: 'Inter', sans-serif !important; border-bottom: 1px solid rgba(255, 140, 0, 0.3) !important; border-right: 1px solid rgba(255, 140, 0, 0.3) !important; text-align: center !important; padding: 12px !important; }
+    [data-testid="stTable"] th { font-size: 1.1rem !important; font-weight: 700 !important; background-color: rgba(255, 140, 0, 0.1) !important; }
+    [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child { border-right: none !important; }
+
     div[data-testid="stNumberInput"] input { 
         background-color: #1a1a1a !important; 
         color: #FFD700 !important; 
@@ -65,7 +70,7 @@ st.markdown("""
     }
     </style>
     
-    <div style="text-align: center; padding: 20px 0;">
+    <div style="text-align: center; padding: 15px 0;">
         <span class="soccer-icon">⚽</span>
         <span class="titulo-personalizado">Predicción Mundial 2026</span>
         <span class="soccer-icon" style="animation-delay: 0.5s;">⚽</span>
@@ -89,6 +94,7 @@ mundial = {
     }
 
 def calcular_df_estricto(equipos, resultados_dict):
+    # Restauradas columnas Pts, PJ, GF, GC, DG
     tabla = pd.DataFrame(0, index=equipos, columns=['Pts', 'PJ', 'GF', 'GC', 'DG'])
     tabla.index.name = "Equipos"
     for (e1, e2), (g1, g2) in resultados_dict.items():
@@ -124,6 +130,7 @@ with tab_p:
                     cols[4].markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
                     predicciones_usuario[(e1, e2)] = (g1, g2)
         with c2:
+            st.markdown(f"<div class='titulo-posiciones'>📊 TU TABLA {zona}</div>", unsafe_allow_html=True)
             st.table(calcular_df_estricto(equipos, predicciones_usuario))
 
 with tab_r:
@@ -138,11 +145,12 @@ with tab_r:
                     c = st.columns([2, 0.7, 0.2, 0.7, 2])
                     c[0].markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
                     g1 = c[1].number_input("", 0, 20, 0, key=f"r_{e1}_{e2}_{zona}", label_visibility="collapsed")
-                    c[2].write("-")
+                    c[2].markdown("<p style='text-align:center; color:white;'>-</p>", unsafe_allow_html=True)
                     g2 = c[3].number_input("", 0, 20, 0, key=f"r2_{e1}_{e2}_{zona}", label_visibility="collapsed")
                     c[4].markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
                     resultados_oficiales[(e1, e2)] = (g1, g2)
         with col2:
+            st.markdown(f"<div class='titulo-posiciones'>📊 POSICIONES REALES {zona}</div>", unsafe_allow_html=True)
             st.table(calcular_df_estricto(equipos, resultados_oficiales))
 
 with tab_c:
@@ -157,8 +165,8 @@ with tab_c:
             eq_p, eq_r = orden_p[idx], orden_r[idx]
             pts = 2 if eq_p == eq_r else (1 if eq_p in orden_r[:2] and eq_r in orden_p[:2] else 0)
             puntos_z += pts
-            c_a.markdown(f"{idx+1}° {eq_p}")
-            c_b.markdown(f"{idx+1}° {eq_r}")
+            c_a.markdown(f"<p class='nombre-equipo'>{idx+1}° {eq_p}</p>", unsafe_allow_html=True)
+            c_b.markdown(f"<p class='nombre-equipo'>{idx+1}° {eq_r}</p>", unsafe_allow_html=True)
             c_c.write(f"+{pts} pts")
         total_gral += puntos_z
         st.divider()
