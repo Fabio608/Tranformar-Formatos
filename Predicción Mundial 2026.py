@@ -59,37 +59,44 @@ st.markdown("""
     }
     [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child { border-right: none !important; }
 
-    /* --- ELIMINACIÓN DE CONTROLES (X y flechas de image_cb7d44.png) --- */
-    /* Quita las flechas en Chrome, Safari, Edge, Opera */
+    /* --- CORRECCIÓN DE INPUTS (ADIÓS CRUCES Y CAJAS BLANCAS) --- */
+    
+    /* Quita las flechas de número */
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
       -webkit-appearance: none !important;
       margin: 0 !important;
     }
-
-    /* Quita las flechas en Firefox */
     input[type=number] {
       -moz-appearance: textfield !important;
     }
 
-    /* Quita la 'X' de borrado y otros botones de Streamlit */
-    div[data-testid="stNumberInput"] button {
+    /* Oculta el botón de limpiar (la cruz) de Streamlit */
+    [data-testid="stInputClearButton"], 
+    button[aria-label="Clear input"] {
         display: none !important;
     }
-    
-    div[data-testid="stNumberInput"] input { 
+
+    /* El contenedor principal: acá le damos el borde y color para tapar lo blanco */
+    div[data-baseweb="input"] {
         background-color: #1a1a1a !important; 
-        color: #FFD700 !important; 
         border: 2px solid #FF8C00 !important; 
+        border-radius: 6px !important;
+    }
+
+    /* El input adentro del contenedor: transparente para que tome el diseño de arriba */
+    div[data-testid="stNumberInput"] input { 
+        background-color: transparent !important; 
+        color: #FFD700 !important; 
         font-weight: 900 !important; 
         text-align: center !important;
         padding: 5px !important;
-        width: 100% !important;
+        border: none !important;
     }
 
-    /* Selector universal para quitar botones de 'clear' */
-    button[title="Clear value"], .st-emotion-cache-10trblm {
-        display: none !important;
+    /* Efecto al seleccionar el input */
+    div[data-baseweb="input"]:focus-within {
+        border-color: #FFD700 !important;
     }
     </style>
     
