@@ -80,20 +80,19 @@ st.markdown("<h1 class='titulo-principal'>MUNDIAL 2026</h1>", unsafe_allow_html=
 
 # --- 2. TODOS LOS GRUPOS (A - L) ---
 mundial = {
-    "GRUPO A": ["🇲🇽 México", "🇺🇸 Estados Unidos", "🇨🇦 Canadá", "🇵🇦 Panamá"],
-    "GRUPO B": ["🇦🇷 Argentina", "🇪🇨 Ecuador", "🇺🇾 Uruguay", "🇧🇷 Brasil"],
-    "GRUPO C": ["🇫🇷 Francia", "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Inglaterra", "🇧🇪 Bélgica", "🇳🇱 Países Bajos"],
-    "GRUPO D": ["🇪🇸 España", "🇵🇹 Portugal", "🇩🇪 Alemania", "🇮🇹 Italia"],
-    "GRUPO E": ["🇲🇦 Marruecos", "🇸🇳 Senegal", "🇹🇳 Túnez", "🇩🇿 Argelia"],
-    "GRUPO F": ["🇯🇵 Japón", "🇰🇷 Corea del Sur", "🇸🇦 Arabia Saudita", "🇦🇺 Australia"],
-    "GRUPO G": ["🇭🇷 Croacia", "🇨🇭 Suiza", "🇩🇰 Dinamarca", "🇷🇸 Serbia"],
-    "GRUPO H": ["🇨🇴 Colombia", "🇵🇾 Paraguay", "🇨🇱 Chile", "🇵🇪 Perú"],
-    "GRUPO I": ["🇳🇬 Nigeria", "🇪🇬 Egipto", "🇨🇲 Camerún", "🇬🇭 Ghana"],
-    "GRUPO J": ["🇺🇦 Ucrania", "🇵🇱 Polonia", "🇦🇹 Austria", "🇹🇷 Turquía"],
-    "GRUPO K": ["🇨🇷 Costa Rica", "🇯🇲 Jamaica", "🇭🇳 Honduras", "🇸🇻 El Salvador"],
-    "GRUPO L": ["🇶🇦 Qatar", "🇮🇷 Irán", "🇮🇶 Irak", "🇦🇪 Emiratos Árabes"]
-}
-
+        "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
+        "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
+        "ZONA C": ["Brasil", "Marruecos", "Haití", "Escocia"],
+        "ZONA D": ["Estados Unidos", "Australia", "Paraguay", "Turquía"],
+        "ZONA E": ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
+        "ZONA F": ["Países Bajos", "Japón", "Suecia", "Túnez"],
+        "ZONA G": ["Bélgica", "Egipto", "Irán", "Nueva Zelanda"],
+        "ZONA H": ["España", "Cabo Verde", "Arabia Saudita", "Uruguay"],
+        "ZONA I": ["Francia", "Senegal", "Irak", "Noruega"],
+        "ZONA J": ["Argentina", "Argelia", "Jordania", "Austria"],
+        "ZONA K": ["Portugal", "RD Congo", "Uzbekistán", "Colombia"],
+        "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
+    }
 # Función para MI PREDICCIÓN (Con abreviaciones)
 def calcular_df_estricto(equipos, resultados_dict):
     tabla = pd.DataFrame({
