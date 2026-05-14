@@ -41,7 +41,7 @@ st.markdown("""
 
     .nombre-equipo { font-family: 'Inter', sans-serif; font-size: 1.1rem !important; font-weight: 700 !important; color: #FFFFFF !important; }
 
-    /* --- TABLA DE POSICIONES --- */
+    /* --- TABLA DE POSICIONES MEJORADA --- */
     [data-testid="stTable"] { 
         background-color: #000000 !important; 
         border-radius: 12px !important; 
@@ -49,12 +49,20 @@ st.markdown("""
         overflow: hidden !important;
     }
     
+    /* Estilo del Encabezado */
     [data-testid="stTable"] thead tr th {
         background-color: #FF8C00 !important;
         color: #000000 !important;
         font-family: 'Archivo Black', sans-serif !important;
         text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 12px !important;
         border: none !important;
+    }
+
+    /* Filas y Celdas */
+    [data-testid="stTable"] tbody tr {
+        border-bottom: 1px solid rgba(255, 140, 0, 0.2) !important;
     }
 
     [data-testid="stTable"] td { 
@@ -62,25 +70,11 @@ st.markdown("""
         font-family: 'Inter', sans-serif !important; 
         text-align: center !important; 
         font-weight: 600 !important;
-        border-bottom: 1px solid rgba(255, 140, 0, 0.2) !important;
+        padding: 12px !important;
     }
 
-    /* --- INPUTS SIN AMARILLO Y SIN CRUCES (image_cafde3.png) --- */
-    /* Forzamos el color de texto a NEGRO */
-    div[data-testid="stNumberInput"] input { 
-        background-color: #FFFFFF !important; /* Fondo blanco para que el texto negro resalte como en la imagen */
-        color: #000000 !important; 
-        font-weight: 900 !important; 
-        text-align: center !important;
-        font-size: 1.3rem !important;
-        height: 45px !important;
-        border: 2px solid #FF8C00 !important;
-        border-radius: 8px !important;
-    }
-
-    /* Si preferís que el fondo siga siendo negro y el texto blanco/gris, cambiá el color arriba */
-
-    /* ELIMINACIÓN TOTAL DE BOTONES INTERNOS Y LA X */
+    /* --- SOLUCIÓN A image_cb7d44.png (Eliminar X y Flechas) --- */
+    /* Eliminar flechas laterales */
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
       -webkit-appearance: none !important;
@@ -88,14 +82,27 @@ st.markdown("""
     }
     input[type=number] { -moz-appearance: textfield !important; }
 
+    /* Ocultar botones de control de Streamlit (+, -, y la X de borrado) */
     div[data-testid="stNumberInput"] button { display: none !important; }
-    div[data-baseweb="input"] > div:last-child { display: none !important; }
-    button[title="Clear value"] { display: none !important; }
     
-    /* Quitar el borde azul de enfoque de Streamlit */
-    div[data-baseweb="input"]:focus-within {
-        border-color: #FF8C00 !important;
-        box-shadow: none !important;
+    /* Ocultar el contenedor secundario de los inputs que suele tener el botón 'clear' */
+    div[data-baseweb="input"] > div:last-child { display: none !important; }
+
+    /* Estilo del Input */
+    div[data-baseweb="input"] {
+        background-color: #000000 !important; 
+        border: 2px solid #FF8C00 !important; 
+        border-radius: 8px !important;
+        padding-right: 0px !important; /* Elimina espacio para la X */
+    }
+
+    div[data-testid="stNumberInput"] input { 
+        background-color: transparent !important; 
+        color: #FFD700 !important; 
+        font-weight: 900 !important; 
+        text-align: center !important;
+        font-size: 1.3rem !important;
+        height: 45px !important;
     }
     </style>
     
@@ -119,6 +126,7 @@ mundial = {
         "ZONA K": ["Portugal", "RD Congo", "Uzbekistán", "Colombia"],
         "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
     }
+
 def calcular_df(equipos, resultados_dict):
     tabla = pd.DataFrame(0, index=equipos, columns=['Pts', 'PJ', 'GF', 'GC', 'DG'])
     tabla.index.name = "EQUIPOS"
