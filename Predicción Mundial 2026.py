@@ -4,16 +4,16 @@ from datetime import datetime, timezone, timedelta
 import urllib.parse  # Para codificar el mensaje de WhatsApp de forma segura
 
 # --- 1. CONFIGURACIÓN Y ESTÉTICA ---
-st.set_page_config(page_title="Predicción Mundial 2026", page_icon="🏆", layout="wide")
+st.set_page_config(page_title="Pronosticador Mundial 2026", page_icon="🏆", layout="wide")
 
 AR = timezone(timedelta(hours=-3))
 fecha_limite = datetime(2026, 6, 11, 0, 0, 0, tzinfo=AR)
 ahora = datetime.now(AR)
 
-# Mapeo de banderas oficiales para cada selección participante
+# Mapeo de banderas oficiales para cada selección participante (sin abreviaciones)
 banderas = {
     "México": "🇲🇽", "Sudáfrica": "🇿🇦", "Corea del Sur": "🇰🇷", "República Checa": "🇨🇿",
-    "Canadá": "🇨🇦", "Bosnia": "🇧🇦", "Qatar": "🇶🇦", "Suiza": "🇨🇭",
+    "Canadá": "🇨🇦", "Bosnia y Herzegovina": "🇧🇦", "Qatar": "🇶🇦", "Suiza": "🇨🇭",
     "Brasil": "🇧🇷", "Marruecos": "🇲🇦", "Haití": "🇭🇹", "Escocia": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
     "Estados Unidos": "🇺🇸", "Australia": "🇦🇺", "Paraguay": "🇵🇾", "Turquía": "🇹🇷",
     "Alemania": "🇩🇪", "Curazao": "🇨🇼", "Costa de Marfil": "🇨🇮", "Ecuador": "🇪🇨",
@@ -22,7 +22,7 @@ banderas = {
     "España": "🇪🇸", "Cabo Verde": "🇨🇻", "Arabia Saudita": "🇸🇦", "Uruguay": "🇺🇾",
     "Francia": "🇫🇷", "Senegal": "🇸🇳", "Irak": "🇮🇶", "Noruega": "🇳🇴",
     "Argentina": "🇦🇷", "Argelia": "🇩🇿", "Jordania": "🇯🇴", "Austria": "🇦🇹",
-    "Portugal": "🇵🇹", "RD Congo": "🇨🇩", "Uzbekistán": "🇺🇿", "Colombia": "🇨🇴",
+    "Portugal": "🇵🇹", "República Democrática del Congo": "🇨🇩", "Uzbekistán": "🇺🇿", "Colombia": "🇨🇴",
     "Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "Croacia": "🇭🇷", "Ghana": "🇬🇭", "Panamá": "🇵🇦"
 }
 
@@ -139,7 +139,7 @@ st.markdown("""
 
     /* --- CONTROLES DE RESULTADOS ESTILO SCOREBOARD --- */
     
-    /* Quitar flechas por completo */
+    /* Quitar flechas de número por completo */
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
       -webkit-appearance: none !important;
@@ -149,7 +149,7 @@ st.markdown("""
       -moz-appearance: textfield !important;
     }
 
-    /* Ocultar botones e iconos de Streamlit de forma agresiva */
+    /* Ocultar la cruz "X" (clear button) de Streamlit */
     [data-testid="stInputClearButton"], 
     button[aria-label="Clear input"],
     div[data-baseweb="input"] svg,
@@ -159,9 +159,9 @@ st.markdown("""
         pointer-events: none !important;
     }
 
-    /* Caja contenedora: Color blanco de tarjeta de árbitro limpia */
+    /* Caja contenedora: Color blanco/gris claro para máxima legibilidad */
     div[data-baseweb="input"] {
-        background-color: #FFFFFF !important; 
+        background-color: #F5F5F7 !important; 
         border: 2px solid #FF8C00 !important; 
         border-radius: 8px !important;
         box-shadow: 0 2px 10px rgba(255,140,0,0.15) !important;
@@ -210,7 +210,7 @@ st.markdown("""
     
     <div style="text-align: center; padding: 15px 0;">
         <span class="titulo-personalizado">FIFA WORLD CUP 2026</span>
-        <div class="subtitulo-personalizado">PREDICTOR DE GRUPOS OFICIAL</div>
+        <div class="subtitulo-personalizado">PRONOSTICADOR DE GRUPOS OFICIAL</div>
     </div>
     """, unsafe_allow_html=True)
 
@@ -228,11 +228,10 @@ else:
         </div>
     """, unsafe_allow_html=True)
 
-# --- 2. LÓGICA DE DATOS ---
-# Grupos oficiales del Mundial de 48 equipos
+# Grupos oficiales del Mundial de 48 equipos (sin abreviaciones)
 mundial = {
     "GRUPO A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
-    "GRUPO B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
+    "GRUPO B": ["Canadá", "Bosnia y Herzegovina", "Qatar", "Suiza"],
     "GRUPO C": ["Brasil", "Marruecos", "Haití", "Escocia"],
     "GRUPO D": ["Estados Unidos", "Australia", "Paraguay", "Turquía"],
     "GRUPO E": ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
@@ -241,7 +240,7 @@ mundial = {
     "GRUPO H": ["España", "Cabo Verde", "Arabia Saudita", "Uruguay"],
     "GRUPO I": ["Francia", "Senegal", "Irak", "Noruega"],
     "GRUPO J": ["Argentina", "Argelia", "Jordania", "Austria"],
-    "GRUPO K": ["Portugal", "RD Congo", "Uzbekistán", "Colombia"],
+    "GRUPO K": ["Portugal", "República Democrática del Congo", "Uzbekistán", "Colombia"],
     "GRUPO L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
 }
 
@@ -251,7 +250,7 @@ def calcular_df(equipos, resultados_dict):
     equipos_set = set(equipos)
     
     for (e1, e2), (g1, g2) in resultados_dict.items():
-        # Filtro de protección contra KeyError para procesar solo equipos de este grupo
+        # Procesar solo si ambos equipos pertenecen a este grupo actual
         if e1 in equipos_set and e2 in equipos_set:
             if g1 is not None and g2 is not None:
                 tabla.loc[e1, 'PJ'] += 1; tabla.loc[e2, 'PJ'] += 1
@@ -266,7 +265,7 @@ def calcular_df(equipos, resultados_dict):
     return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
 
 def generar_url_whatsapp(nombre, dict_p):
-    texto = "🏆 *Mi Predicción de Grupos - Mundial 2026* ⚽\n"
+    texto = "🏆 *Mi Pronóstico de Grupos - Mundial 2026* ⚽\n"
     if nombre:
         texto += f"👤 *Pronosticador:* {nombre}\n\n"
     else:
@@ -277,18 +276,17 @@ def generar_url_whatsapp(nombre, dict_p):
         clasificado_1 = df_ordenado.index[0]
         clasificado_2 = df_ordenado.index[1]
         
-        # Obtenemos los emojis de banderas correspondientes
         b1 = banderas.get(clasificado_1, "")
         b2 = banderas.get(clasificado_2, "")
         
         texto += f"🔸 *{grupo}:* 1° {b1} {clasificado_1} | 2° {b2} {clasificado_2}\n"
         
-    texto += "\n🔮 _¿Y vos? ¡Armá tu predicción aquí!_"
+    texto += "\n🔮 _¿Y vos? ¡Armá tu pronóstico aquí!_"
     texto_codificado = urllib.parse.quote(texto)
     return f"https://wa.me/?text={texto_codificado}"
 
-# --- 3. INTERFAZ EN TABS DEPORTIVAS ---
-tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 PUNTAJE FINAL"])
+# --- 3. INTERFAZ EN TABS ---
+tab_p, tab_r, tab_c = st.tabs(["🔮 MI PRONÓSTICO", "📈 RESULTADOS REALES", "🎯 PUNTAJE FINAL"])
 
 with tab_p:
     puede_p = ahora < fecha_limite
@@ -308,13 +306,11 @@ with tab_p:
                 for j in range(i + 1, len(equipos)):
                     e1, e2 = equipos[i], equipos[j]
                     
-                    # Traemos las banderas
                     b1 = banderas.get(e1, "")
                     b2 = banderas.get(e2, "")
                     
                     cols = st.columns([2.2, 0.7, 0.2, 0.7, 2.2])
                     
-                    # Alineación estética de nombres y banderas
                     cols[0].markdown(f"<p class='nombre-equipo' style='text-align:right;'>{b1} {e1}</p>", unsafe_allow_html=True)
                     v1 = cols[1].number_input("", 0, 20, value=None, key=f"p1_{e1}_{e2}_{grupo}", label_visibility="collapsed", disabled=not puede_p)
                     cols[2].markdown("<p style='text-align:center; color:white; font-weight:bold;'>-</p>", unsafe_allow_html=True)
@@ -325,19 +321,21 @@ with tab_p:
                     
         with c2:
             df_tabla = calcular_df(equipos, dict_p)
-            # Para la visualización de la tabla, agregamos las banderas al índice estético
             df_vista = df_tabla.copy()
+            # Mapear índice con banderas
             df_vista.index = [f"{banderas.get(team, '')} {team}" for team in df_vista.index]
+            # Resetear índice para que "Equipos" sea una columna visible en el encabezado
+            df_vista = df_vista.reset_index().rename(columns={"index": "Equipos"})
             st.table(df_vista)
             
     # Sección de acciones finales
     st.markdown("---")
     col_btn1, col_btn2 = st.columns([1, 1])
     with col_btn1:
-        st.button("✅ Guardar Predicción", disabled=not puede_p, use_container_width=True)
+        st.button("✅ Guardar Pronóstico", disabled=not puede_p, use_container_width=True)
     with col_btn2:
         url_wa = generar_url_whatsapp(user_name, dict_p)
-        st.link_button("📲 Compartir mi Predicción por WhatsApp", url_wa, type="primary", use_container_width=True)
+        st.link_button("📲 Compartir mi Pronóstico por WhatsApp", url_wa, type="primary", use_container_width=True)
 
 with tab_r:
     puede_r = ahora >= fecha_limite
@@ -369,6 +367,7 @@ with tab_r:
             df_tabla_r = calcular_df(equipos, dict_r)
             df_vista_r = df_tabla_r.copy()
             df_vista_r.index = [f"{banderas.get(team, '')} {team}" for team in df_vista_r.index]
+            df_vista_r = df_vista_r.reset_index().rename(columns={"index": "Equipos"})
             st.table(df_vista_r)
 
 with tab_c:
@@ -388,7 +387,6 @@ with tab_c:
                 
             puntos_totales += p
             
-            # Formato con banderas en la revisión de puntaje
             p_flag = banderas.get(orden_p[idx], "")
             r_flag = banderas.get(orden_r[idx], "")
             
