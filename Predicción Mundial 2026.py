@@ -12,208 +12,209 @@ ahora = datetime.now(AR)
 
 # Mapeo de banderas oficiales para cada selección participante (sin abreviaciones)
 banderas = {
-    "México", "Sudáfrica", "Corea del Sur", "República Checa",
-    "Canadá", "Bosnia y Herzegovina", "Qatar", "Suiza",
-    "Brasil", "Marruecos", "Haití", "Escocia",
-    "Estados Unidos", "Australia", "Paraguay", "Turquía",
-    "Alemania", "Curazao", "Costa de Marfil", "Ecuador",
-    "Países Bajos", "Japón", "Suecia", "Túnez",
-    "Bélgica", "Egipto"", "Irán", "Nueva Zelanda",
-    "España", "Cabo Verde", "Arabia Saudita", "Uruguay",
-    "Francia", "Senegal", "Irak", "Noruega"",
-    "Argentina", "Argelia", "Jordania", "Austria",
-    "Portugal", "República Democrática del Congo", "Uzbekistán", "Colombia",
-    "Inglaterra", "Croacia", "Ghana", "Panamá"
+    "GRUPO A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
+    "GRUPO B": ["Canadá", "Bosnia y Herzegovina", "Qatar", "Suiza"],
+    "GRUPO C": ["Brasil", "Marruecos", "Haití", "Escocia"],
+    "GRUPO D": ["Estados Unidos", "Australia", "Paraguay", "Turquía"],
+    "GRUPO E": ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
+    "GRUPO F": ["Países Bajos", "Japón", "Suecia", "Túnez"],
+    "GRUPO G": ["Bélgica", "Egipto", "Irán", "Nueva Zelanda"],
+    "GRUPO H": ["España", "Cabo Verde", "Arabia Saudita", "Uruguay"],
+    "GRUPO I": ["Francia", "Senegal", "Irak", "Noruega"],
+    "GRUPO J": ["Argentina", "Argelia", "Jordania", "Austria"],
+    "GRUPO K": ["Portugal", "República Democrática del Congo", "Uzbekistán", "Colombia"],
+    "GRUPO L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
 }
 
 st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700;900&display=swap');
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700;900&display=swap');
+    
+    /* Fondo del Estadio de Noche */
+    .stApp {
+        background: linear-gradient(rgba(10, 15, 30, 0.92), rgba(6, 10, 20, 0.95)), 
+                    url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=2000");
+        background-size: cover;
+        background-attachment: fixed;
+    }
 
-/* Fondo del Estadio de Noche */
-.stApp {
-    background: linear-gradient(rgba(10, 15, 30, 0.92), rgba(6, 10, 20, 0.95)), 
-                url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=2000");
-    background-size: cover;
-    background-attachment: fixed;
-}
+    /* Título Oficial */
+    .titulo-personalizado {
+        font-family: 'Archivo Black', sans-serif;
+        background: linear-gradient(135deg, #FFF, #FFD700);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 3rem !important;
+        text-align: center;
+        margin: 0;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.5));
+    }
+    
+    .subtitulo-personalizado {
+        font-family: 'Inter', sans-serif;
+        color: #00FFCC;
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        text-align: center;
+        margin-top: -10px;
+        margin-bottom: 20px;
+    }
 
-/* Título Oficial */
-.titulo-personalizado {
-    font-family: 'Archivo Black', sans-serif;
-    background: linear-gradient(135deg, #FFF, #FFD700);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-size: 3rem !important;
-    text-align: center;
-    margin: 0;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.5));
-}
+    /* Banner de cuenta regresiva */
+    .countdown-banner {
+        background: linear-gradient(90deg, rgba(255,140,0,0.15) 0%, rgba(0,255,204,0.1) 100%);
+        border: 1px solid rgba(0,255,204,0.3);
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,255,204,0.1);
+    }
 
-.subtitulo-personalizado {
-    font-family: 'Inter', sans-serif;
-    color: #00FFCC;
-    font-weight: 700;
-    font-size: 1.1rem;
-    text-transform: uppercase;
-    letter-spacing: 4px;
-    text-align: center;
-    margin-top: -10px;
-    margin-bottom: 20px;
-}
+    /* Título de Grupos de la Copa */
+    .titulo-zona { 
+        font-family: 'Archivo Black', sans-serif; 
+        color: #FF8C00 !important; 
+        font-size: 1.6rem !important; 
+        margin-top: 30px; 
+        margin-bottom: 15px; 
+        border-bottom: 3px solid #FF8C00; 
+        width: fit-content; 
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
 
-/* Banner de cuenta regresiva */
-.countdown-banner {
-    background: linear-gradient(90deg, rgba(255,140,0,0.15) 0%, rgba(0,255,204,0.1) 100%);
-    border: 1px solid rgba(0,255,204,0.3);
-    border-radius: 12px;
-    padding: 12px;
-    text-align: center;
-    font-family: 'Inter', sans-serif;
-    font-weight: 700;
-    color: #FFFFFF;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 15px rgba(0,255,204,0.1);
-}
+    .nombre-equipo { 
+        font-family: 'Inter', sans-serif; 
+        font-size: 1.1rem !important; 
+        font-weight: 700 !important; 
+        color: #FFFFFF !important; 
+    }
 
-/* Título de Grupos de la Copa */
-.titulo-zona { 
-    font-family: 'Archivo Black', sans-serif; 
-    color: #FF8C00 !important; 
-    font-size: 1.6rem !important; 
-    margin-top: 30px; 
-    margin-bottom: 15px; 
-    border-bottom: 3px solid #FF8C00; 
-    width: fit-content; 
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
+    /* --- ESTILO DE LA TABLA DE CLASIFICACIÓN --- */
+    [data-testid="stTable"] { 
+        background-color: rgba(10, 15, 30, 0.6) !important; 
+        backdrop-filter: blur(10px) !important;
+        border-radius: 16px !important; 
+        border: 1px solid rgba(255, 255, 255, 0.1) !important; 
+        overflow: hidden !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    [data-testid="stTable"] thead th {
+        background-color: rgba(255, 140, 0, 0.15) !important;
+        color: #FFD700 !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        font-size: 0.85rem !important;
+        letter-spacing: 1px !important;
+    }
 
-.nombre-equipo { 
-    font-family: 'Inter', sans-serif; 
-    font-size: 1.1rem !important; 
-    font-weight: 700 !important; 
-    color: #FFFFFF !important; 
-}
+    [data-testid="stTable"] td, [data-testid="stTable"] th { 
+        color: white !important; 
+        font-family: 'Inter', sans-serif !important; 
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important; 
+        border-right: 1px solid rgba(255, 255, 255, 0.05) !important; 
+        text-align: center !important; 
+        padding: 12px 10px !important; 
+    }
+    [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child { border-right: none !important; }
 
-/* --- ESTILO DE LA TABLA DE CLASIFICACIÓN --- */
-[data-testid="stTable"] { 
-    background-color: rgba(10, 15, 30, 0.6) !important; 
-    backdrop-filter: blur(10px) !important;
-    border-radius: 16px !important; 
-    border: 1px solid rgba(255, 255, 255, 0.1) !important; 
-    overflow: hidden !important;
-    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
-}
+    /* Indicadores visuales de clasificación (Verde 1°, Azul 2°) */
+    [data-testid="stTable"] tr:nth-child(1) td {
+        background-color: rgba(46, 204, 113, 0.12) !important; /* Clasificado 1 */
+        border-left: 4px solid #2ecc71 !important;
+    }
+    [data-testid="stTable"] tr:nth-child(2) td {
+        background-color: rgba(52, 152, 219, 0.08) !important; /* Clasificado 2 */
+        border-left: 4px solid #3498db !important;
+    }
 
-[data-testid="stTable"] thead th {
-    background-color: rgba(255, 140, 0, 0.15) !important;
-    color: #FFD700 !important;
-    font-weight: 900 !important;
-    text-transform: uppercase !important;
-    font-size: 0.85rem !important;
-    letter-spacing: 1px !important;
-}
+    /* --- CONTROLES DE RESULTADOS ESTILO SCOREBOARD --- */
+    
+    /* Quitar flechas de número por completo */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+      -webkit-appearance: none !important;
+      margin: 0 !important;
+    }
+    input[type=number] {
+      -moz-appearance: textfield !important;
+    }
 
-[data-testid="stTable"] td, [data-testid="stTable"] th { 
-    color: white !important; 
-    font-family: 'Inter', sans-serif !important; 
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important; 
-    border-right: 1px solid rgba(255, 255, 255, 0.05) !important; 
-    text-align: center !important; 
-    padding: 12px 10px !important; 
-}
-[data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child { border-right: none !important; }
+    /* Ocultar la cruz "X" (clear button) de Streamlit */
+    [data-testid="stInputClearButton"], 
+    button[aria-label="Clear input"],
+    div[data-baseweb="input"] svg,
+    div[data-testid="stNumberInput"] button {
+        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
 
-/* Indicadores visuales de clasificación (Verde 1°, Azul 2°) */
-[data-testid="stTable"] tr:nth-child(1) td {
-    background-color: rgba(46, 204, 113, 0.12) !important; /* Clasificado 1 */
-    border-left: 4px solid #2ecc71 !important;
-}
-[data-testid="stTable"] tr:nth-child(2) td {
-    background-color: rgba(52, 152, 219, 0.08) !important; /* Clasificado 2 */
-    border-left: 4px solid #3498db !important;
-}
+    /* Caja contenedora: Color blanco/gris claro para máxima legibilidad */
+    div[data-baseweb="input"] {
+        background-color: #F5F5F7 !important; 
+        border: 2px solid #FF8C00 !important; 
+        border-radius: 8px !important;
+        box-shadow: 0 2px 10px rgba(255,140,0,0.15) !important;
+        transition: all 0.3s ease !important;
+    }
 
-/* --- CONTROLES DE RESULTADOS ESTILO SCOREBOARD --- */
+    div[data-baseweb="input"]:focus-within {
+        border-color: #00FFCC !important;
+        box-shadow: 0 0 10px rgba(0,255,204,0.5) !important;
+    }
 
-/* Quitar flechas de número por completo */
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none !important;
-  margin: 0 !important;
-}
-input[type=number] {
-  -moz-appearance: textfield !important;
-}
+    /* El número ingresado: Grande, centrado y NEGRO INTENSO */
+    div[data-testid="stNumberInput"] input { 
+        background-color: transparent !important; 
+        color: #000000 !important; 
+        font-family: 'Archivo Black', sans-serif !important;
+        font-size: 1.3rem !important;
+        font-weight: 900 !important; 
+        text-align: center !important;
+        padding: 4px !important;
+        border: none !important;
+    }
 
-/* Ocultar la cruz "X" (clear button) de Streamlit */
-[data-testid="stInputClearButton"], 
-button[aria-label="Clear input"],
-div[data-baseweb="input"] svg,
-div[data-testid="stNumberInput"] button {
-    display: none !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
-}
+    /* Estilo para los selectores de Solapas (Tabs) */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 10px;
+        background-color: rgba(255,255,255,0.03) !important;
+        padding: 8px !important;
+        border-radius: 12px !important;
+    }
+    .stTabs [data-baseweb="tab"] {
+        background-color: transparent !important;
+        color: rgba(255,255,255,0.6) !important;
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+        padding: 10px 20px !important;
+        transition: all 0.3s ease !important;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #FF8C00 !important;
+        color: #000000 !important;
+        box-shadow: 0 4px 15px rgba(255,140,0,0.3) !important;
+    }
+    </style>
+    
+    <div style="text-align: center; padding: 15px 0;">
+        <span class="titulo-personalizado">FIFA WORLD CUP 2026</span>
+        <div class="subtitulo-personalizado">PRONOSTICADOR DE GRUPOS OFICIAL</div>
+    </div>
+    """, unsafe_allow_html=True)
 
-/* Caja contenedora: Color blanco/gris claro para máxima legibilidad */
-div[data-baseweb="input"] {
-    background-color: #F5F5F7 !important; 
-    border: 2px solid #FF8C00 !important; 
-    border-radius: 8px !important;
-    box-shadow: 0 2px 10px rgba(255,140,0,0.15) !important;
-    transition: all 0.3s ease !important;
-}
-
-div[data-baseweb="input"]:focus-within {
-    border-color: #00FFCC !important;
-    box-shadow: 0 0 10px rgba(0,255,204,0.5) !important;
-}
-
-/* El número ingresado: Grande, centrado y NEGRO INTENSO */
-div[data-testid="stNumberInput"] input { 
-    background-color: transparent !important; 
-    color: #000000 !important; 
-    font-family: 'Archivo Black', sans-serif !important;
-    font-size: 1.3rem !important;
-    font-weight: 900 !important; 
-    text-align: center !important;
-    padding: 4px !important;
-    border: none !important;
-}
-
-/* Estilo para los selectores de Solapas (Tabs) */
-.stTabs [data-baseweb="tab-list"] {
-    gap: 10px;
-    background-color: rgba(255,255,255,0.03) !important;
-    padding: 8px !important;
-    border-radius: 12px !important;
-}
-.stTabs [data-baseweb="tab"] {
-    background-color: transparent !important;
-    color: rgba(255,255,255,0.6) !important;
-    font-family: 'Inter', sans-serif !important;
-    font-weight: 700 !important;
-    border-radius: 8px !important;
-    padding: 10px 20px !important;
-    transition: all 0.3s ease !important;
-}
-.stTabs [aria-selected="true"] {
-    background-color: #FF8C00 !important;
-    color: #000000 !important;
-    box-shadow: 0 4px 15px rgba(255,140,0,0.3) !important;
-}
-</style>
-
-<div style="text-align: center; padding: 15px 0;">
-    <span class="titulo-personalizado">FIFA WORLD CUP 2026</span>
-    <div class="subtitulo-personalizado">PRONOSTICADOR DE GRUPOS OFICIAL</div>
-</div>
-""", unsafe_allow_html=True)
-
+# # STREAMING_CHUNK: Calculando días restantes para el inicio del Mundial...
 dias_restantes = (fecha_limite - ahora).days
 if dias_restantes > 0:
     st.markdown(f"""
@@ -228,7 +229,7 @@ else:
         </div>
     """, unsafe_allow_html=True)
 
-# Grupos oficiales del Mundial de 48 equipos (completamente sin abreviaciones)
+# Grupos oficiales del Mundial de 48 equipos (sin abreviaciones)
 mundial = {
     "GRUPO A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
     "GRUPO B": ["Canadá", "Bosnia y Herzegovina", "Qatar", "Suiza"],
@@ -244,6 +245,7 @@ mundial = {
     "GRUPO L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
 }
 
+# # STREAMING_CHUNK: Definiendo la lógica para calcular las tablas de posiciones...
 def calcular_df(equipos, resultados_dict):
     tabla = pd.DataFrame(0, index=equipos, columns=['Pts', 'PJ', 'GF', 'GC', 'DG'])
     tabla.index.name = "Equipos"
@@ -264,6 +266,7 @@ def calcular_df(equipos, resultados_dict):
                 
     return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
 
+# # STREAMING_CHUNK: Agregando función para armar el mensaje de WhatsApp...
 def generar_url_whatsapp(nombre, dict_p):
     texto = "🏆 *Mi Pronóstico de Grupos - Mundial 2026* ⚽\n"
     if nombre:
@@ -288,6 +291,7 @@ def generar_url_whatsapp(nombre, dict_p):
 # --- 3. INTERFAZ EN TABS ---
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PRONÓSTICO", "📈 RESULTADOS REALES", "🎯 PUNTAJE FINAL"])
 
+# # STREAMING_CHUNK: Creando la interfaz de la pestaña 'MI PRONÓSTICO' con banderas en partidos...
 with tab_p:
     puede_p = ahora < fecha_limite
     st.info("📅 Se puede editar hasta el 10 de Junio de 2026 inclusive.")
@@ -301,7 +305,7 @@ with tab_p:
         c1, c2 = st.columns([1, 1.2])
         
         with c1:
-            # Lista de partidos cara a cara con banderas oficiales
+            # Lista de partidos cara a cara con emojis de banderas sumados
             for i in range(len(equipos)):
                 for j in range(i + 1, len(equipos)):
                     e1, e2 = equipos[i], equipos[j]
@@ -322,7 +326,7 @@ with tab_p:
         with c2:
             df_tabla = calcular_df(equipos, dict_p)
             df_vista = df_tabla.copy()
-            # Mapear índice con banderas oficiales para que se vea limpio
+            # Mapear índice con banderas
             df_vista.index = [f"{banderas.get(team, '')} {team}" for team in df_vista.index]
             # Resetear índice para que "Equipos" sea una columna visible en el encabezado
             df_vista = df_vista.reset_index().rename(columns={"index": "Equipos"})
@@ -337,6 +341,7 @@ with tab_p:
         url_wa = generar_url_whatsapp(user_name, dict_p)
         st.link_button("📲 Compartir mi Pronóstico por WhatsApp", url_wa, type="primary", use_container_width=True)
 
+# # STREAMING_CHUNK: Configurando la pestaña 'RESULTADOS REALES' con el ícono de pelota de fútbol...
 with tab_r:
     puede_r = ahora >= fecha_limite
     if not puede_r:
@@ -370,6 +375,7 @@ with tab_r:
             df_vista_r = df_vista_r.reset_index().rename(columns={"index": "Equipos"})
             st.table(df_vista_r)
 
+# # STREAMING_CHUNK: Diseñando el panel de 'PUNTAJE FINAL' con banderas...
 with tab_c:
     puntos_totales = 0
     for grupo, equipos in mundial.items():
