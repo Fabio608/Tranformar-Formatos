@@ -26,7 +26,7 @@ banderas = {
     "Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "Croacia": "🇭🇷", "Ghana": "🇬🇭", "Panamá": "🇵🇦"
 }
 
-st.markdown("""
+#st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700;900&display=swap');
     
@@ -214,8 +214,7 @@ st.markdown("""
     </div>
     """, unsafe_allow_html=True)
 
-# # STREAMING_CHUNK: Calculando días restantes para el inicio del Mundial...
-dias_restantes = (fecha_limite - ahora).days
+#dias_restantes = (fecha_limite - ahora).days
 if dias_restantes > 0:
     st.markdown(f"""
         <div class="countdown-banner">
@@ -245,8 +244,7 @@ mundial = {
     "GRUPO L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
 }
 
-# # STREAMING_CHUNK: Definiendo la lógica para calcular las tablas de posiciones...
-def calcular_df(equipos, resultados_dict):
+#def calcular_df(equipos, resultados_dict):
     tabla = pd.DataFrame(0, index=equipos, columns=['Pts', 'PJ', 'GF', 'GC', 'DG'])
     tabla.index.name = "Equipos"
     equipos_set = set(equipos)
@@ -266,8 +264,7 @@ def calcular_df(equipos, resultados_dict):
                 
     return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
 
-# # STREAMING_CHUNK: Agregando función para armar el mensaje de WhatsApp...
-def generar_url_whatsapp(nombre, dict_p):
+#def generar_url_whatsapp(nombre, dict_p):
     texto = "🏆 *Mi Pronóstico de Grupos - Mundial 2026* ⚽\n"
     if nombre:
         texto += f"👤 *Pronosticador:* {nombre}\n\n"
@@ -291,8 +288,7 @@ def generar_url_whatsapp(nombre, dict_p):
 # --- 3. INTERFAZ EN TABS ---
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PRONÓSTICO", "📈 RESULTADOS REALES", "🎯 PUNTAJE FINAL"])
 
-# # STREAMING_CHUNK: Creando la interfaz de la pestaña 'MI PRONÓSTICO' con banderas en partidos...
-with tab_p:
+#with tab_p:
     puede_p = ahora < fecha_limite
     st.info("📅 Se puede editar hasta el 10 de Junio de 2026 inclusive.")
     
@@ -305,7 +301,7 @@ with tab_p:
         c1, c2 = st.columns([1, 1.2])
         
         with c1:
-            # Lista de partidos cara a cara con emojis de banderas sumados
+            # Lista de partidos cara a cara con banderas oficiales
             for i in range(len(equipos)):
                 for j in range(i + 1, len(equipos)):
                     e1, e2 = equipos[i], equipos[j]
@@ -326,7 +322,7 @@ with tab_p:
         with c2:
             df_tabla = calcular_df(equipos, dict_p)
             df_vista = df_tabla.copy()
-            # Mapear índice con banderas
+            # Mapear índice con banderas oficiales para que se vea limpio
             df_vista.index = [f"{banderas.get(team, '')} {team}" for team in df_vista.index]
             # Resetear índice para que "Equipos" sea una columna visible en el encabezado
             df_vista = df_vista.reset_index().rename(columns={"index": "Equipos"})
@@ -341,8 +337,7 @@ with tab_p:
         url_wa = generar_url_whatsapp(user_name, dict_p)
         st.link_button("📲 Compartir mi Pronóstico por WhatsApp", url_wa, type="primary", use_container_width=True)
 
-# # STREAMING_CHUNK: Configurando la pestaña 'RESULTADOS REALES' con el ícono de pelota de fútbol...
-with tab_r:
+#with tab_r:
     puede_r = ahora >= fecha_limite
     if not puede_r:
         st.warning("🔒 Los resultados reales se habilitarán automáticamente el 11 de Junio una vez iniciado el evento.")
@@ -375,8 +370,7 @@ with tab_r:
             df_vista_r = df_vista_r.reset_index().rename(columns={"index": "Equipos"})
             st.table(df_vista_r)
 
-# # STREAMING_CHUNK: Diseñando el panel de 'PUNTAJE FINAL' con banderas...
-with tab_c:
+#with tab_c:
     puntos_totales = 0
     for grupo, equipos in mundial.items():
         st.markdown(f"<div class='titulo-zona'>⚖️ Comparación {grupo}</div>", unsafe_allow_html=True)
