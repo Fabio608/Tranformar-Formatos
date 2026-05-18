@@ -214,6 +214,8 @@ st.markdown("""
     </div>
     """, unsafe_allow_html=True)
 
+st.markdown("<p style='text-align: center; color: white; font-size: 1.1rem; font-weight: 700; margin-top: -10px;'>🇲🇽 México | 🇺🇸 Estados Unidos | 🇨🇦 Canadá</p>", unsafe_allow_html=True)
+
 # # STREAMING_CHUNK: Calculando días restantes para el inicio del Mundial...
 dias_restantes = (fecha_limite - ahora).days
 if dias_restantes > 0:
@@ -399,7 +401,7 @@ with tab_c:
 
             ca.markdown(f"<span class='nombre-equipo'>🔮 {idx+1}° {p_flag} {orden_p[idx]}</span>", unsafe_allow_html=True)
             cb.markdown(f"<span class='nombre-equipo'>🏟️ Real: {r_flag} {orden_r[idx]}</span>", unsafe_allow_html=True)
-            cc.write(f"⭐ +{p} pts")
+            cc.markdown(f"<span class='nombre-equipo'>⭐ +{p} pts</span>", unsafe_allow_html=True)
 
     st.markdown(f"""
         <div style='background: linear-gradient(135deg, #FF8C00, #FFD700); padding:20px; border-radius:14px; text-align:center; box-shadow: 0 4px 20px rgba(255,140,0,0.3);'>
