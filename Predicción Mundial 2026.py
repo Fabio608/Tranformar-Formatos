@@ -12,18 +12,18 @@ ahora = datetime.now(AR)
 
 # Mapeo de banderas oficiales para cada selección participante (sin abreviaciones)
 banderas = {
-    "México": "🇲🇽", "Sudáfrica": "🇿🇦", "Corea del Sur": "🇰🇷", "República Checa": "🇨🇿",
-    "Canadá": "🇨🇦", "Bosnia y Herzegovina": "🇧🇦", "Qatar": "🇶🇦", "Suiza": "🇨🇭",
-    "Brasil": "🇧🇷", "Marruecos": "🇲🇦", "Haití": "🇭🇹", "Escocia": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-    "Estados Unidos": "🇺🇸", "Australia": "🇦🇺", "Paraguay": "🇵🇾", "Turquía": "🇹🇷",
-    "Alemania": "🇩🇪", "Curazao": "🇨🇼", "Costa de Marfil": "🇨🇮", "Ecuador": "🇪🇨",
-    "Países Bajos": "🇳🇱", "Japón": "🇯🇵", "Suecia": "🇸🇪", "Túnez": "🇹🇳",
-    "Bélgica": "🇧🇪", "Egipto": "🇪🇬", "Irán": "🇮🇷", "Nueva Zelanda": "🇳🇿",
-    "España": "🇪🇸", "Cabo Verde": "🇨🇻", "Arabia Saudita": "🇸🇦", "Uruguay": "🇺🇾",
-    "Francia": "🇫🇷", "Senegal": "🇸🇳", "Irak": "🇮🇶", "Noruega": "🇳🇴",
-    "Argentina": "🇦🇷", "Argelia": "🇩🇿", "Jordania": "🇯🇴", "Austria": "🇦🇹",
-    "Portugal": "🇵🇹", "República Democrática del Congo": "🇨🇩", "Uzbekistán": "🇺🇿", "Colombia": "🇨🇴",
-    "Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "Croacia": "🇭🇷", "Ghana": "🇬🇭", "Panamá": "🇵🇦"
+    "México", "Sudáfrica", "Corea del Sur", "República Checa",
+    "Canadá", "Bosnia y Herzegovina", "Qatar", "Suiza",
+    "Brasil", "Marruecos", "Haití", "Escocia",
+    "Estados Unidos", "Australia", "Paraguay", "Turquía",
+    "Alemania", "Curazao", "Costa de Marfil", "Ecuador",
+    "Países Bajos", "Japón", "Suecia", "Túnez",
+    "Bélgica", "Egipto"", "Irán", "Nueva Zelanda",
+    "España", "Cabo Verde", "Arabia Saudita", "Uruguay",
+    "Francia", "Senegal", "Irak", "Noruega"",
+    "Argentina", "Argelia", "Jordania", "Austria",
+    "Portugal", "República Democrática del Congo", "Uzbekistán", "Colombia",
+    "Inglaterra", "Croacia", "Ghana", "Panamá"
 }
 
 st.markdown("""
