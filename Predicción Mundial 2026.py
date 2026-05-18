@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime, timezone, timedelta
+import urllib.parse  # Para codificar el mensaje de WhatsApp de forma segura
 
 # --- 1. CONFIGURACIÓN Y ESTÉTICA ---
 st.set_page_config(page_title="Predicción Mundial 2026", page_icon="⚽", layout="wide")
@@ -59,7 +60,7 @@ st.markdown("""
     }
     [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child { border-right: none !important; }
 
-    /* --- CORRECCIÓN DE INPUTS --- */
+    /* --- CORRECCIÓN DE INPUTS (COLOR NEGRO Y SIN CRUCES) --- */
     
     /* Quita las flechas de número (spinners) */
     input::-webkit-outer-spin-button,
@@ -71,32 +72,26 @@ st.markdown("""
       -moz-appearance: textfield !important;
     }
 
-    /* Oculta el botón de limpiar (la cruz) de Streamlit de manera más agresiva */
+    /* Oculta de manera agresiva botones de borrar y cruz interna de Streamlit */
     [data-testid="stInputClearButton"], 
     button[aria-label="Clear input"],
-    /* Seleccionamos específicamente los SVGs que actúan como iconos dentro del input */
-    div[data-baseweb="input"] svg {
+    div[data-baseweb="input"] svg,
+    div[data-testid="stNumberInput"] button {
         display: none !important;
         opacity: 0 !important;
         pointer-events: none !important;
     }
 
-    /* Ocultamos cualquier botón interno del widget de número que Streamlit pueda inyectar */
-    div[data-testid="stNumberInput"] button {
-        display: none !important;
-    }
-
-    /* El contenedor principal: fondo naranja claro o gris claro para que resalte el texto negro, o el que prefieras */
+    /* Contenedor principal del input: fondo gris claro para que contraste el número negro */
     div[data-baseweb="input"] {
-        background-color: #f0f0f0 !important; /* Fondo más claro para que el negro se lea mejor */
+        background-color: #f0f0f0 !important; 
         border: 2px solid #FF8C00 !important; 
         border-radius: 6px !important;
     }
 
-    /* El input adentro del contenedor */
+    /* El input numérico: Texto completamente negro y súper legible */
     div[data-testid="stNumberInput"] input { 
         background-color: transparent !important; 
-        /* --- AQUÍ EL CAMBIO A COLOR NEGRO --- */
         color: black !important; 
         font-weight: 900 !important; 
         text-align: center !important;
@@ -135,7 +130,7 @@ def calcular_df(equipos, resultados_dict):
     tabla.index.name = "Equipos"
     equipos_set = set(equipos)
     for (e1, e2), (g1, g2) in resultados_dict.items():
-        # Filtramos para procesar solo los equipos que pertenecen a la zona actual
+        # Procesamos solo los equipos correspondientes a la zona evaluada para evitar KeyError
         if e1 in equipos_set and e2 in equipos_set:
             if g1 is not None and g2 is not None:
                 tabla.loc[e1, 'PJ'] += 1; tabla.loc[e2, 'PJ'] += 1
@@ -148,12 +143,35 @@ def calcular_df(equipos, resultados_dict):
                 else: tabla.loc[e1, 'Pts'] += 1; tabla.loc[e2, 'Pts'] += 1
     return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
 
+def generar_url_whatsapp(nombre, dict_p):
+    texto = "🏆 *Mi Predicción para el Mundial 2026* ⚽\n"
+    if nombre:
+        texto += f"👤 *Pronosticador:* {nombre}\n\n"
+    else:
+        texto += f"👤 *Mi pronóstico de Grupos:*\n\n"
+    
+    # Recorremos cada zona para extraer el 1° y 2° lugar de la predicción del usuario
+    for zona, equipos in mundial.items():
+        df_ordenado = calcular_df(equipos, dict_p)
+        clasificado_1 = df_ordenado.index[0]
+        clasificado_2 = df_ordenado.index[1]
+        texto += f"🔸 *{zona}:* 1° {clasificado_1} | 2° {clasificado_2}\n"
+        
+    texto += "\n🔮 _¿Y vos? ¡Armá tu predicción también!_"
+    
+    # Codificamos el texto para que sea compatible con una URL de WhatsApp web/móvil
+    texto_codificado = urllib.parse.quote(texto)
+    return f"https://wa.me/?text={texto_codificado}"
+
+# --- 3. INTERFAZ EN TABS ---
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 PUNTAJE FINAL"])
 
 with tab_p:
     puede_p = ahora < fecha_limite
     st.info("📅 Se puede editar hasta el 10 de Junio de 2026 inclusive.")
-    st.text_input("👤 **NOMBRE:**", key="user_name")
+    
+    # Capturamos el nombre en el session_state para poder usarlo dinámicamente
+    user_name = st.text_input("👤 **NOMBRE:**", key="user_name")
     
     dict_p = {}
     for zona, equipos in mundial.items():
@@ -173,7 +191,15 @@ with tab_p:
         with c2:
             st.table(calcular_df(equipos, dict_p))
     
-    st.button("✅ Finalizar Resultados", disabled=not puede_p)
+    # Fila de acciones al final de la pestaña
+    st.markdown("---")
+    col_btn1, col_btn2 = st.columns([1, 1])
+    with col_btn1:
+        st.button("✅ Finalizar Resultados", disabled=not puede_p, use_container_width=True)
+    with col_btn2:
+        # Generamos dinámicamente la URL con los datos actuales ingresados
+        url_wa = generar_url_whatsapp(user_name, dict_p)
+        st.link_button("📲 Compartir mi predicción por WhatsApp", url_wa, type="primary", use_container_width=True)
 
 with tab_r:
     puede_r = ahora >= fecha_limite
