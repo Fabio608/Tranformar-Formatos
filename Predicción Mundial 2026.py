@@ -272,9 +272,7 @@ def generar_url_whatsapp(nombre, dict_p):
     if nombre:
         texto += f"👤 *Pronosticador:* {nombre}\n\n"
     else:
-        texto += f"👤 *Mis Clasificados:*
-
-"
+        texto += "👤 *Mis Clasificados:*\n\n"
 
     for grupo, equipos in mundial.items():
         df_ordenado = calcular_df(equipos, dict_p)
