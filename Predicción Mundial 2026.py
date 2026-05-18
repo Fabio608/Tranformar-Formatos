@@ -3,8 +3,6 @@ import pandas as pd
 from datetime import datetime, timezone, timedelta
 import urllib.parse  # Para codificar el mensaje de WhatsApp de forma segura
 
-!pip install streamlit # Install streamlit
-
 # --- 1. CONFIGURACIÓN Y ESTÉTICA ---
 st.set_page_config(page_title="Pronosticador Mundial 2026", page_icon="🏆", layout="wide")
 
@@ -274,7 +272,9 @@ def generar_url_whatsapp(nombre, dict_p):
     if nombre:
         texto += f"👤 *Pronosticador:* {nombre}\n\n"
     else:
-        texto += f"👤 *Mis Clasificados:*\n\n"
+        texto += f"👤 *Mis Clasificados:*
+
+"
 
     for grupo, equipos in mundial.items():
         df_ordenado = calcular_df(equipos, dict_p)
@@ -299,7 +299,8 @@ with tab_p:
     st.markdown("<p style='color: white;'>📅 Se puede editar hasta el 10 de Junio de 2026 inclusive.</p>", unsafe_allow_html=True)
 
     # Capturamos el nombre
-    user_name = st.text_input("👤 **INGRESÁ TU NOMBRE DE PRONOSTICADOR:**", key="user_name", placeholder="Ej: Juan Pérez")
+    st.markdown("<p class='nombre-equipo'>👤 **INGRESÁ TU NOMBRE DE PRONOSTICADOR:**</p>", unsafe_allow_html=True)
+    user_name = st.text_input("", key="user_name", placeholder="Ej: Juan Pérez", label_visibility="collapsed")
 
     dict_p = {}
     for grupo, equipos in mundial.items():
