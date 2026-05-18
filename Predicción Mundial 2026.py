@@ -115,7 +115,6 @@ st.markdown("""
     </div>
     """, unsafe_allow_html=True)
 
-# --- 2. LÓGICA DE DATOS ---
 mundial = {
         "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
         "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
@@ -134,19 +133,21 @@ mundial = {
 def calcular_df(equipos, resultados_dict):
     tabla = pd.DataFrame(0, index=equipos, columns=['Pts', 'PJ', 'GF', 'GC', 'DG'])
     tabla.index.name = "Equipos"
+    equipos_set = set(equipos)
     for (e1, e2), (g1, g2) in resultados_dict.items():
-        if g1 is not None and g2 is not None:
-            tabla.loc[e1, 'PJ'] += 1; tabla.loc[e2, 'PJ'] += 1
-            tabla.loc[e1, 'GF'] += g1; tabla.loc[e1, 'GC'] += g2
-            tabla.loc[e2, 'GF'] += g2; tabla.loc[e2, 'GC'] += g1
-            tabla.loc[e1, 'DG'] = tabla.loc[e1, 'GF'] - tabla.loc[e1, 'GC']
-            tabla.loc[e2, 'DG'] = tabla.loc[e2, 'GF'] - tabla.loc[e2, 'GC']
-            if g1 > g2: tabla.loc[e1, 'Pts'] += 3
-            elif g2 > g1: tabla.loc[e2, 'Pts'] += 3
-            else: tabla.loc[e1, 'Pts'] += 1; tabla.loc[e2, 'Pts'] += 1
+        # Filtramos para procesar solo los equipos que pertenecen a la zona actual
+        if e1 in equipos_set and e2 in equipos_set:
+            if g1 is not None and g2 is not None:
+                tabla.loc[e1, 'PJ'] += 1; tabla.loc[e2, 'PJ'] += 1
+                tabla.loc[e1, 'GF'] += g1; tabla.loc[e1, 'GC'] += g2
+                tabla.loc[e2, 'GF'] += g2; tabla.loc[e2, 'GC'] += g1
+                tabla.loc[e1, 'DG'] = tabla.loc[e1, 'GF'] - tabla.loc[e1, 'GC']
+                tabla.loc[e2, 'DG'] = tabla.loc[e2, 'GF'] - tabla.loc[e2, 'GC']
+                if g1 > g2: tabla.loc[e1, 'Pts'] += 3
+                elif g2 > g1: tabla.loc[e2, 'Pts'] += 3
+                else: tabla.loc[e1, 'Pts'] += 1; tabla.loc[e2, 'Pts'] += 1
     return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
 
-# --- 3. INTERFAZ ---
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 PUNTAJE FINAL"])
 
 with tab_p:
