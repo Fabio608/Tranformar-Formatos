@@ -210,7 +210,7 @@ st.markdown("""
     
     <div style="text-align: center; padding: 15px 0;">
         <span class="titulo-personalizado">FIFA WORLD CUP 2026</span>
-        <div class="subtitulo-personalizado">PRONOSTICADOR DE GRUPOS OFICIAL</div>
+        <div class="subtitulo-personalizado">PRONOSTICADOR DE GRUPOS </div>
     </div>
     """, unsafe_allow_html=True)
 
