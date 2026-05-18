@@ -214,7 +214,7 @@ st.markdown("""
     </div>
     """, unsafe_allow_html=True)
 
-st.markdown("<p style='text-align: center; color: white; font-size: 1.1rem; font-weight: 700; margin-top: -10px;'>🇲🇽 México | 🇺🇸 Estados Unidos | 🇨🇦 Canadá</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; color: white; font-size: 1.1rem; font-weight: 700; margin-top: -10px;'> México | Estados Unidos | Canadá</p>", unsafe_allow_html=True)
 
 # # STREAMING_CHUNK: Calculando días restantes para el inicio del Mundial...
 dias_restantes = (fecha_limite - ahora).days
