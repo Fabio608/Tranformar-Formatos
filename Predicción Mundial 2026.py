@@ -4,65 +4,142 @@ from datetime import datetime, timezone, timedelta
 import urllib.parse  # Para codificar el mensaje de WhatsApp de forma segura
 
 # --- 1. CONFIGURACIÓN Y ESTÉTICA ---
-st.set_page_config(page_title="Predicción Mundial 2026", page_icon="⚽", layout="wide")
+st.set_page_config(page_title="Predicción Mundial 2026", page_icon="🏆", layout="wide")
 
 AR = timezone(timedelta(hours=-3))
 fecha_limite = datetime(2026, 6, 11, 0, 0, 0, tzinfo=AR)
 ahora = datetime.now(AR)
 
+# Mapeo de banderas oficiales para cada selección participante
+banderas = {
+    "México": "🇲🇽", "Sudáfrica": "🇿🇦", "Corea del Sur": "🇰🇷", "República Checa": "🇨🇿",
+    "Canadá": "🇨🇦", "Bosnia": "🇧🇦", "Qatar": "🇶🇦", "Suiza": "🇨🇭",
+    "Brasil": "🇧🇷", "Marruecos": "🇲🇦", "Haití": "🇭🇹", "Escocia": "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "Estados Unidos": "🇺🇸", "Australia": "🇦🇺", "Paraguay": "🇵🇾", "Turquía": "🇹🇷",
+    "Alemania": "🇩🇪", "Curazao": "🇨🇼", "Costa de Marfil": "🇨🇮", "Ecuador": "🇪🇨",
+    "Países Bajos": "🇳🇱", "Japón": "🇯🇵", "Suecia": "🇸🇪", "Túnez": "🇹🇳",
+    "Bélgica": "🇧🇪", "Egipto": "🇪🇬", "Irán": "🇮🇷", "Nueva Zelanda": "🇳🇿",
+    "España": "🇪🇸", "Cabo Verde": "🇨🇻", "Arabia Saudita": "🇸🇦", "Uruguay": "🇺🇾",
+    "Francia": "🇫🇷", "Senegal": "🇸🇳", "Irak": "🇮🇶", "Noruega": "🇳🇴",
+    "Argentina": "🇦🇷", "Argelia": "🇩🇿", "Jordania": "🇯🇴", "Austria": "🇦🇹",
+    "Portugal": "🇵🇹", "RD Congo": "🇨🇩", "Uzbekistán": "🇺🇿", "Colombia": "🇨🇴",
+    "Inglaterra": "🏴󠁧󠁢󠁥󠁮󠁧󠁿", "Croacia": "🇭🇷", "Ghana": "🇬🇭", "Panamá": "🇵🇦"
+}
+
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;700;900&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;600;700;900&display=swap');
     
+    /* Fondo del Estadio de Noche */
     .stApp {
-        background: linear-gradient(rgba(0,0,0,0.88), rgba(0,0,0,0.88)), 
-                    url("https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=2000");
+        background: linear-gradient(rgba(10, 15, 30, 0.92), rgba(6, 10, 20, 0.95)), 
+                    url("https://images.unsplash.com/photo-1508098682722-e99c43a406b2?q=80&w=2000");
         background-size: cover;
         background-attachment: fixed;
     }
 
+    /* Título Oficial */
     .titulo-personalizado {
         font-family: 'Archivo Black', sans-serif;
-        color: black;
-        font-size: 2.8rem !important;
+        background: linear-gradient(135deg, #FFF, #FFD700);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-size: 3rem !important;
         text-align: center;
         margin: 0;
-        -webkit-text-stroke: 1.5px white;
-        text-shadow: 2px 2px 0px rgba(0,0,0,0.2);
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.5));
+    }
+    
+    .subtitulo-personalizado {
+        font-family: 'Inter', sans-serif;
+        color: #00FFCC;
+        font-weight: 700;
+        font-size: 1.1rem;
+        text-transform: uppercase;
+        letter-spacing: 4px;
+        text-align: center;
+        margin-top: -10px;
+        margin-bottom: 20px;
     }
 
+    /* Banner de cuenta regresiva */
+    .countdown-banner {
+        background: linear-gradient(90deg, rgba(255,140,0,0.15) 0%, rgba(0,255,204,0.1) 100%);
+        border: 1px solid rgba(0,255,204,0.3);
+        border-radius: 12px;
+        padding: 12px;
+        text-align: center;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        color: #FFFFFF;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(0,255,204,0.1);
+    }
+
+    /* Título de Grupos de la Copa */
     .titulo-zona { 
         font-family: 'Archivo Black', sans-serif; 
         color: #FF8C00 !important; 
-        font-size: 1.8rem !important; 
-        margin-top: 20px; 
+        font-size: 1.6rem !important; 
+        margin-top: 30px; 
         margin-bottom: 15px; 
         border-bottom: 3px solid #FF8C00; 
         width: fit-content; 
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
-    .nombre-equipo { font-family: 'Inter', sans-serif; font-size: 1.1rem !important; font-weight: 700 !important; color: #FFFFFF !important; }
+    .nombre-equipo { 
+        font-family: 'Inter', sans-serif; 
+        font-size: 1.1rem !important; 
+        font-weight: 700 !important; 
+        color: #FFFFFF !important; 
+    }
 
-    /* --- ESTILO DE TABLA --- */
+    /* --- ESTILO DE LA TABLA DE CLASIFICACIÓN --- */
     [data-testid="stTable"] { 
-        background-color: rgba(255, 255, 255, 0.05) !important; 
-        border-radius: 15px !important; 
-        border: 1px solid rgba(255, 140, 0, 0.5) !important; 
+        background-color: rgba(10, 15, 30, 0.6) !important; 
+        backdrop-filter: blur(10px) !important;
+        border-radius: 16px !important; 
+        border: 1px solid rgba(255, 255, 255, 0.1) !important; 
         overflow: hidden !important;
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
     }
+    
+    [data-testid="stTable"] thead th {
+        background-color: rgba(255, 140, 0, 0.15) !important;
+        color: #FFD700 !important;
+        font-weight: 900 !important;
+        text-transform: uppercase !important;
+        font-size: 0.85rem !important;
+        letter-spacing: 1px !important;
+    }
+
     [data-testid="stTable"] td, [data-testid="stTable"] th { 
         color: white !important; 
         font-family: 'Inter', sans-serif !important; 
-        border-bottom: 1px solid rgba(255, 140, 0, 0.3) !important; 
-        border-right: 1px solid rgba(255, 140, 0, 0.3) !important; 
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important; 
+        border-right: 1px solid rgba(255, 255, 255, 0.05) !important; 
         text-align: center !important; 
-        padding: 10px !important; 
+        padding: 12px 10px !important; 
     }
     [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child { border-right: none !important; }
 
-    /* --- CORRECCIÓN DE INPUTS (COLOR NEGRO Y SIN CRUCES) --- */
+    /* Indicadores visuales de clasificación (Verde 1°, Azul 2°) */
+    [data-testid="stTable"] tr:nth-child(1) td {
+        background-color: rgba(46, 204, 113, 0.12) !important; /* Clasificado 1 */
+        border-left: 4px solid #2ecc71 !important;
+    }
+    [data-testid="stTable"] tr:nth-child(2) td {
+        background-color: rgba(52, 152, 219, 0.08) !important; /* Clasificado 2 */
+        border-left: 4px solid #3498db !important;
+    }
+
+    /* --- CONTROLES DE RESULTADOS ESTILO SCOREBOARD --- */
     
-    /* Quita las flechas de número (spinners) */
+    /* Quitar flechas por completo */
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
       -webkit-appearance: none !important;
@@ -72,7 +149,7 @@ st.markdown("""
       -moz-appearance: textfield !important;
     }
 
-    /* Oculta de manera agresiva botones de borrar y cruz interna de Streamlit */
+    /* Ocultar botones e iconos de Streamlit de forma agresiva */
     [data-testid="stInputClearButton"], 
     button[aria-label="Clear input"],
     div[data-baseweb="input"] svg,
@@ -82,55 +159,99 @@ st.markdown("""
         pointer-events: none !important;
     }
 
-    /* Contenedor principal del input: fondo gris claro para que contraste el número negro */
+    /* Caja contenedora: Color blanco de tarjeta de árbitro limpia */
     div[data-baseweb="input"] {
-        background-color: #f0f0f0 !important; 
+        background-color: #FFFFFF !important; 
         border: 2px solid #FF8C00 !important; 
-        border-radius: 6px !important;
+        border-radius: 8px !important;
+        box-shadow: 0 2px 10px rgba(255,140,0,0.15) !important;
+        transition: all 0.3s ease !important;
     }
 
-    /* El input numérico: Texto completamente negro y súper legible */
+    div[data-baseweb="input"]:focus-within {
+        border-color: #00FFCC !important;
+        box-shadow: 0 0 10px rgba(0,255,204,0.5) !important;
+    }
+
+    /* El número ingresado: Grande, centrado y NEGRO INTENSO */
     div[data-testid="stNumberInput"] input { 
         background-color: transparent !important; 
-        color: black !important; 
+        color: #000000 !important; 
+        font-family: 'Archivo Black', sans-serif !important;
+        font-size: 1.3rem !important;
         font-weight: 900 !important; 
         text-align: center !important;
-        padding: 5px !important;
+        padding: 4px !important;
         border: none !important;
     }
 
-    /* Efecto al seleccionar el input */
-    div[data-baseweb="input"]:focus-within {
-        border-color: white !important;
+    /* Estilo para los selectores de Solapas (Tabs) */
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 10px;
+        background-color: rgba(255,255,255,0.03) !important;
+        padding: 8px !important;
+        border-radius: 12px !important;
+    }
+    .stTabs [data-baseweb="tab"] {
+        background-color: transparent !important;
+        color: rgba(255,255,255,0.6) !important;
+        font-family: 'Inter', sans-serif !important;
+        font-weight: 700 !important;
+        border-radius: 8px !important;
+        padding: 10px 20px !important;
+        transition: all 0.3s ease !important;
+    }
+    .stTabs [aria-selected="true"] {
+        background-color: #FF8C00 !important;
+        color: #000000 !important;
+        box-shadow: 0 4px 15px rgba(255,140,0,0.3) !important;
     }
     </style>
     
     <div style="text-align: center; padding: 15px 0;">
-        <span class="titulo-personalizado">Predicción Mundial 2026</span>
+        <span class="titulo-personalizado">FIFA WORLD CUP 2026</span>
+        <div class="subtitulo-personalizado">PREDICTOR DE GRUPOS OFICIAL</div>
     </div>
     """, unsafe_allow_html=True)
 
+dias_restantes = (fecha_limite - ahora).days
+if dias_restantes > 0:
+    st.markdown(f"""
+        <div class="countdown-banner">
+            ⚽ ¡FALTAN SÓLO 🏟️ <span style="color:#00FFCC; font-size: 1.3rem;">{dias_restantes} DÍAS</span> PARA EL PARTIDO INAUGURAL DE LA COPA DEL MUNDO!
+        </div>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+        <div class="countdown-banner" style="border-color: #2ecc71;">
+            🔥🏆 ¡EL MUNDIAL DE LA FIFA 2026 YA ESTÁ EN JUEGO! ¡QUE GANEN LOS MEJORES! ⚽
+        </div>
+    """, unsafe_allow_html=True)
+
+# --- 2. LÓGICA DE DATOS ---
+# Grupos oficiales del Mundial de 48 equipos
 mundial = {
-        "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
-        "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
-        "ZONA C": ["Brasil", "Marruecos", "Haití", "Escocia"],
-        "ZONA D": ["Estados Unidos", "Australia", "Paraguay", "Turquía"],
-        "ZONA E": ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
-        "ZONA F": ["Países Bajos", "Japón", "Suecia", "Túnez"],
-        "ZONA G": ["Bélgica", "Egipto", "Irán", "Nueva Zelanda"],
-        "ZONA H": ["España", "Cabo Verde", "Arabia Saudita", "Uruguay"],
-        "ZONA I": ["Francia", "Senegal", "Irak", "Noruega"],
-        "ZONA J": ["Argentina", "Argelia", "Jordania", "Austria"],
-        "ZONA K": ["Portugal", "RD Congo", "Uzbekistán", "Colombia"],
-        "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
-    }
+    "GRUPO A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
+    "GRUPO B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
+    "GRUPO C": ["Brasil", "Marruecos", "Haití", "Escocia"],
+    "GRUPO D": ["Estados Unidos", "Australia", "Paraguay", "Turquía"],
+    "GRUPO E": ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
+    "GRUPO F": ["Países Bajos", "Japón", "Suecia", "Túnez"],
+    "GRUPO G": ["Bélgica", "Egipto", "Irán", "Nueva Zelanda"],
+    "GRUPO H": ["España", "Cabo Verde", "Arabia Saudita", "Uruguay"],
+    "GRUPO I": ["Francia", "Senegal", "Irak", "Noruega"],
+    "GRUPO J": ["Argentina", "Argelia", "Jordania", "Austria"],
+    "GRUPO K": ["Portugal", "RD Congo", "Uzbekistán", "Colombia"],
+    "GRUPO L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
+}
 
 def calcular_df(equipos, resultados_dict):
     tabla = pd.DataFrame(0, index=equipos, columns=['Pts', 'PJ', 'GF', 'GC', 'DG'])
     tabla.index.name = "Equipos"
     equipos_set = set(equipos)
+    
     for (e1, e2), (g1, g2) in resultados_dict.items():
-        # Procesamos solo los equipos correspondientes a la zona evaluada para evitar KeyError
+        # Filtro de protección contra KeyError para procesar solo equipos de este grupo
         if e1 in equipos_set and e2 in equipos_set:
             if g1 is not None and g2 is not None:
                 tabla.loc[e1, 'PJ'] += 1; tabla.loc[e2, 'PJ'] += 1
@@ -141,102 +262,142 @@ def calcular_df(equipos, resultados_dict):
                 if g1 > g2: tabla.loc[e1, 'Pts'] += 3
                 elif g2 > g1: tabla.loc[e2, 'Pts'] += 3
                 else: tabla.loc[e1, 'Pts'] += 1; tabla.loc[e2, 'Pts'] += 1
+                
     return tabla.sort_values(by=['Pts', 'DG', 'GF'], ascending=False)
 
 def generar_url_whatsapp(nombre, dict_p):
-    texto = "🏆 *Mi Predicción para el Mundial 2026* ⚽\n"
+    texto = "🏆 *Mi Predicción de Grupos - Mundial 2026* ⚽\n"
     if nombre:
         texto += f"👤 *Pronosticador:* {nombre}\n\n"
     else:
-        texto += f"👤 *Mi pronóstico de Grupos:*\n\n"
+        texto += f"👤 *Mis Clasificados:*\n\n"
     
-    # Recorremos cada zona para extraer el 1° y 2° lugar de la predicción del usuario
-    for zona, equipos in mundial.items():
+    for grupo, equipos in mundial.items():
         df_ordenado = calcular_df(equipos, dict_p)
         clasificado_1 = df_ordenado.index[0]
         clasificado_2 = df_ordenado.index[1]
-        texto += f"🔸 *{zona}:* 1° {clasificado_1} | 2° {clasificado_2}\n"
         
-    texto += "\n🔮 _¿Y vos? ¡Armá tu predicción también!_"
-    
-    # Codificamos el texto para que sea compatible con una URL de WhatsApp web/móvil
+        # Obtenemos los emojis de banderas correspondientes
+        b1 = banderas.get(clasificado_1, "")
+        b2 = banderas.get(clasificado_2, "")
+        
+        texto += f"🔸 *{grupo}:* 1° {b1} {clasificado_1} | 2° {b2} {clasificado_2}\n"
+        
+    texto += "\n🔮 _¿Y vos? ¡Armá tu predicción aquí!_"
     texto_codificado = urllib.parse.quote(texto)
     return f"https://wa.me/?text={texto_codificado}"
 
-# --- 3. INTERFAZ EN TABS ---
+# --- 3. INTERFAZ EN TABS DEPORTIVAS ---
 tab_p, tab_r, tab_c = st.tabs(["🔮 MI PREDICCIÓN", "📈 RESULTADOS REALES", "🎯 PUNTAJE FINAL"])
 
 with tab_p:
     puede_p = ahora < fecha_limite
     st.info("📅 Se puede editar hasta el 10 de Junio de 2026 inclusive.")
     
-    # Capturamos el nombre en el session_state para poder usarlo dinámicamente
-    user_name = st.text_input("👤 **NOMBRE:**", key="user_name")
+    # Capturamos el nombre
+    user_name = st.text_input("👤 **INGRESÁ TU NOMBRE DE PRONOSTICADOR:**", key="user_name", placeholder="Ej: Juan Pérez")
     
     dict_p = {}
-    for zona, equipos in mundial.items():
-        st.markdown(f"<div class='titulo-zona'>📍 {zona}</div>", unsafe_allow_html=True)
+    for grupo, equipos in mundial.items():
+        st.markdown(f"<div class='titulo-zona'>📍 {grupo}</div>", unsafe_allow_html=True)
         c1, c2 = st.columns([1, 1.2])
+        
         with c1:
+            # Lista de partidos cara a cara
             for i in range(len(equipos)):
                 for j in range(i + 1, len(equipos)):
                     e1, e2 = equipos[i], equipos[j]
-                    cols = st.columns([2, 0.7, 0.2, 0.7, 2])
-                    cols[0].markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
-                    v1 = cols[1].number_input("", 0, 20, value=None, key=f"p1_{e1}_{e2}_{zona}", label_visibility="collapsed", disabled=not puede_p)
-                    cols[2].markdown("<p style='text-align:center; color:white;'>•</p>", unsafe_allow_html=True)
-                    v2 = cols[3].number_input("", 0, 20, value=None, key=f"p2_{e1}_{e2}_{zona}", label_visibility="collapsed", disabled=not puede_p)
-                    cols[4].markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
+                    
+                    # Traemos las banderas
+                    b1 = banderas.get(e1, "")
+                    b2 = banderas.get(e2, "")
+                    
+                    cols = st.columns([2.2, 0.7, 0.2, 0.7, 2.2])
+                    
+                    # Alineación estética de nombres y banderas
+                    cols[0].markdown(f"<p class='nombre-equipo' style='text-align:right;'>{b1} {e1}</p>", unsafe_allow_html=True)
+                    v1 = cols[1].number_input("", 0, 20, value=None, key=f"p1_{e1}_{e2}_{grupo}", label_visibility="collapsed", disabled=not puede_p)
+                    cols[2].markdown("<p style='text-align:center; color:white; font-weight:bold;'>-</p>", unsafe_allow_html=True)
+                    v2 = cols[3].number_input("", 0, 20, value=None, key=f"p2_{e1}_{e2}_{grupo}", label_visibility="collapsed", disabled=not puede_p)
+                    cols[4].markdown(f"<p class='nombre-equipo' style='text-align:left;'>{b2} {e2}</p>", unsafe_allow_html=True)
+                    
                     dict_p[(e1, e2)] = (v1, v2)
+                    
         with c2:
-            st.table(calcular_df(equipos, dict_p))
-    
-    # Fila de acciones al final de la pestaña
+            df_tabla = calcular_df(equipos, dict_p)
+            # Para la visualización de la tabla, agregamos las banderas al índice estético
+            df_vista = df_tabla.copy()
+            df_vista.index = [f"{banderas.get(team, '')} {team}" for team in df_vista.index]
+            st.table(df_vista)
+            
+    # Sección de acciones finales
     st.markdown("---")
     col_btn1, col_btn2 = st.columns([1, 1])
     with col_btn1:
-        st.button("✅ Finalizar Resultados", disabled=not puede_p, use_container_width=True)
+        st.button("✅ Guardar Predicción", disabled=not puede_p, use_container_width=True)
     with col_btn2:
-        # Generamos dinámicamente la URL con los datos actuales ingresados
         url_wa = generar_url_whatsapp(user_name, dict_p)
-        st.link_button("📲 Compartir mi predicción por WhatsApp", url_wa, type="primary", use_container_width=True)
+        st.link_button("📲 Compartir mi Predicción por WhatsApp", url_wa, type="primary", use_container_width=True)
 
 with tab_r:
     puede_r = ahora >= fecha_limite
     if not puede_r:
-        st.warning("🔒 Los resultados reales se habilitarán el 11 de Junio.")
+        st.warning("🔒 Los resultados reales se habilitarán automáticamente el 11 de Junio una vez iniciado el evento.")
     
     dict_r = {}
-    for zona, equipos in mundial.items():
-        st.markdown(f"<div class='titulo-zona'>📍 {zona}</div>", unsafe_allow_html=True)
+    for grupo, equipos in mundial.items():
+        st.markdown(f"<div class='titulo-zona'>📍 {grupo}</div>", unsafe_allow_html=True)
         c1, c2 = st.columns([1, 1.2])
+        
         with c1:
             for i in range(len(equipos)):
                 for j in range(i + 1, len(equipos)):
                     e1, e2 = equipos[i], equipos[j]
-                    cols = st.columns([2, 0.7, 0.2, 0.7, 2])
-                    cols[0].markdown(f"<p class='nombre-equipo' style='text-align:right;'>{e1}</p>", unsafe_allow_html=True)
-                    v1 = cols[1].number_input("", 0, 20, value=None, key=f"r1_{e1}_{e2}_{zona}", label_visibility="collapsed", disabled=not puede_r)
-                    cols[2].write("•")
-                    v2 = cols[3].number_input("", 0, 20, value=None, key=f"r2_{e1}_{e2}_{zona}", label_visibility="collapsed", disabled=not puede_r)
-                    cols[4].markdown(f"<p class='nombre-equipo' style='text-align:left;'>{e2}</p>", unsafe_allow_html=True)
+                    b1 = banderas.get(e1, "")
+                    b2 = banderas.get(e2, "")
+                    
+                    cols = st.columns([2.2, 0.7, 0.2, 0.7, 2.2])
+                    cols[0].markdown(f"<p class='nombre-equipo' style='text-align:right;'>{b1} {e1}</p>", unsafe_allow_html=True)
+                    v1 = cols[1].number_input("", 0, 20, value=None, key=f"r1_{e1}_{e2}_{grupo}", label_visibility="collapsed", disabled=not puede_r)
+                    cols[2].write("-")
+                    v2 = cols[3].number_input("", 0, 20, value=None, key=f"r2_{e1}_{e2}_{grupo}", label_visibility="collapsed", disabled=not puede_r)
+                    cols[4].markdown(f"<p class='nombre-equipo' style='text-align:left;'>{b2} {e2}</p>", unsafe_allow_html=True)
+                    
                     dict_r[(e1, e2)] = (v1, v2)
+                    
         with c2:
-            st.table(calcular_df(equipos, dict_r))
+            df_tabla_r = calcular_df(equipos, dict_r)
+            df_vista_r = df_tabla_r.copy()
+            df_vista_r.index = [f"{banderas.get(team, '')} {team}" for team in df_vista_r.index]
+            st.table(df_vista_r)
 
 with tab_c:
     puntos_totales = 0
-    for zona, equipos in mundial.items():
-        st.markdown(f"<div class='titulo-zona'>⚖️ {zona}</div>", unsafe_allow_html=True)
+    for grupo, equipos in mundial.items():
+        st.markdown(f"<div class='titulo-zona'>⚖️ Comparación {grupo}</div>", unsafe_allow_html=True)
         orden_p = calcular_df(equipos, dict_p).index.tolist()
         orden_r = calcular_df(equipos, dict_r).index.tolist()
+        
         ca, cb, cc = st.columns(3)
         for idx in range(4):
+            # Solo puntuamos si se cargó al menos algún resultado real
             if any(v is not None for v in sum(dict_r.values(), ())):
                 p = 2 if orden_p[idx] == orden_r[idx] else (1 if orden_p[idx] in orden_r[:2] and orden_r[idx] in orden_p[:2] else 0)
-            else: p = 0
+            else: 
+                p = 0
+                
             puntos_totales += p
-            ca.write(f"{idx+1}° {orden_p[idx]}")
-            cb.write(f"Real: {orden_r[idx]}")
-            cc.write(f"+{p} pts")
-    st.markdown(f"<div style='background:#FF8C00; padding:20px; border-radius:10px; text-align:center;'><h2 style='color:black;'>TOTAL: {puntos_totales} PUNTOS</h2></div>", unsafe_allow_html=True)
+            
+            # Formato con banderas en la revisión de puntaje
+            p_flag = banderas.get(orden_p[idx], "")
+            r_flag = banderas.get(orden_r[idx], "")
+            
+            ca.write(f"🔮 {idx+1}° {p_flag} {orden_p[idx]}")
+            cb.write(f"🏟️ Real: {r_flag} {orden_r[idx]}")
+            cc.write(f"⭐ +{p} pts")
+            
+    st.markdown(f"""
+        <div style='background: linear-gradient(135deg, #FF8C00, #FFD700); padding:20px; border-radius:14px; text-align:center; box-shadow: 0 4px 20px rgba(255,140,0,0.3);'>
+            <h2 style='color:black; font-family: "Archivo Black", sans-serif; margin:0;'>MI MARCADOR TOTAL: {puntos_totales} PUNTOS</h2>
+        </div>
+    """, unsafe_allow_html=True)
