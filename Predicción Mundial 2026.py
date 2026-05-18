@@ -59,9 +59,9 @@ st.markdown("""
     }
     [data-testid="stTable"] td:last-child, [data-testid="stTable"] th:last-child { border-right: none !important; }
 
-    /* --- CORRECCIÓN DE INPUTS (ADIÓS CRUCES Y CAJAS BLANCAS) --- */
+    /* --- CORRECCIÓN DE INPUTS --- */
     
-    /* Quita las flechas de número */
+    /* Quita las flechas de número (spinners) */
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
       -webkit-appearance: none !important;
@@ -71,23 +71,33 @@ st.markdown("""
       -moz-appearance: textfield !important;
     }
 
-    /* Oculta el botón de limpiar (la cruz) de Streamlit */
+    /* Oculta el botón de limpiar (la cruz) de Streamlit de manera más agresiva */
     [data-testid="stInputClearButton"], 
-    button[aria-label="Clear input"] {
+    button[aria-label="Clear input"],
+    /* Seleccionamos específicamente los SVGs que actúan como iconos dentro del input */
+    div[data-baseweb="input"] svg {
+        display: none !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+
+    /* Ocultamos cualquier botón interno del widget de número que Streamlit pueda inyectar */
+    div[data-testid="stNumberInput"] button {
         display: none !important;
     }
 
-    /* El contenedor principal: acá le damos el borde y color para tapar lo blanco */
+    /* El contenedor principal: fondo naranja claro o gris claro para que resalte el texto negro, o el que prefieras */
     div[data-baseweb="input"] {
-        background-color: #1a1a1a !important; 
+        background-color: #f0f0f0 !important; /* Fondo más claro para que el negro se lea mejor */
         border: 2px solid #FF8C00 !important; 
         border-radius: 6px !important;
     }
 
-    /* El input adentro del contenedor: transparente para que tome el diseño de arriba */
+    /* El input adentro del contenedor */
     div[data-testid="stNumberInput"] input { 
         background-color: transparent !important; 
-        color: #FFD700 !important; 
+        /* --- AQUÍ EL CAMBIO A COLOR NEGRO --- */
+        color: black !important; 
         font-weight: 900 !important; 
         text-align: center !important;
         padding: 5px !important;
@@ -96,7 +106,7 @@ st.markdown("""
 
     /* Efecto al seleccionar el input */
     div[data-baseweb="input"]:focus-within {
-        border-color: #FFD700 !important;
+        border-color: white !important;
     }
     </style>
     
