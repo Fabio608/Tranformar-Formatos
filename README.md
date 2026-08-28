@@ -1,74 +1,62 @@
-import streamlit as st
-from datetime import datetime
+import moviepy.editor as mp
+import whisper
+import os
+import math
 
-st.set_page_config(page_title="Simulador Mundial 2026", page_icon="⚽")
+# Función auxiliar para convertir segundos al formato de tiempo de los archivos .srt
+def formato_srt_tiempo(segundos):
+    horas = math.floor(segundos / 3600)
+    segundos %= 3600
+    minutos = math.floor(segundos / 60)
+    segundos %= 60
+    milisegundos = round((segundos - math.floor(segundos)) * 1000)
+    segundos = math.floor(segundos)
+    # Formato: 00:00:00,000
+    return f"{horas:02d}:{minutos:02d}:{segundos:02d},{milisegundos:03d}"
 
-def verificar_fecha_limite():
-    fecha_limite = datetime(2026, 7, 10, 23, 59, 59)
-    if datetime.now() > fecha_limite:
-        st.error("❌ LO SIENTO: El plazo para cargar predicciones terminó.")
-        return False
-    return True
+def video_a_srt(ruta_video, ruta_audio_temporal="audio_temp.wav", archivo_salida="subtitulos.srt"):
+    print("1. Extrayendo audio del video...")
+    try:
+        video = mp.VideoFileClip(ruta_video)
+        video.audio.write_audiofile(ruta_audio_temporal, logger=None)
+    except Exception as e:
+        return f"Error al extraer audio: {e}"
 
-# Título de la App
-st.title("⚽ Simulador Mundial 2026")
+    print("2. Cargando modelo de inteligencia artificial (local)...")
+    modelo = whisper.load_model("base") # Puedes usar "small" o "medium" para mayor precisión
 
-if verificar_fecha_limite():
+    print("3. Transcribiendo y generando tiempos...")
+    resultado = modelo.transcribe(ruta_audio_temporal, language="es")
     
-    # Definición de grupos y zonas
-    mundial_2026 = {
-        "ZONA A": ["México", "Sudáfrica", "Corea del Sur", "República Checa"],
-        "ZONA B": ["Canadá", "Bosnia", "Qatar", "Suiza"],
-        "ZONA C": ["Brasil", "Marruecos", "Haití", "Escocia"],
-        "ZONA D": ["Estados Unidos", "Australia", "Paraguay", "Turquía"],
-        "ZONA E": ["Alemania", "Curazao", "Costa de Marfil", "Ecuador"],
-        "ZONA F": ["Paises Bajos", "Japón", "Suecia", "Tunez"],
-        "ZONA G": ["Belgica", "Egipto", "Irán", "Nueva Zelanda"],
-        "ZONA H": ["España", "Cabo Verde", "Arabia Saudita", "Uruguay"],
-        "ZONA I": ["Francia", "Senegal", "Irak", "Noruega"],
-        "ZONA J": ["Argentina", "Argelia", "Jordania", "Austria"],
-        "ZONA K": ["Portugal", "RD Congo", "Uzbequistan", "Colombia"],
-        "ZONA L": ["Inglaterra", "Croacia", "Ghana", "Panamá"],
-    }
+    print("4. Creando archivo .srt...")
+    # Whisper guarda los fragmentos con tiempo en la clave "segments"
+    segmentos = resultado["segments"]
     
-    zonas_terceros = ["ZONA A", "ZONA B", "ZONA C", "ZONA D"]
-    st.info(f"Zonas habilitadas para terceros: {', '.join(zonas_terceros)}")
-
-    clasificados_finales = {}
-
-    # Crear una pestaña o sección por grupo
-    for nombre_zona, equipos in mundial_2026.items():
-        with st.expander(f"Simular {nombre_zona} {'✅ (Terceros)' if nombre_zona in zonas_terceros else ''}"):
-            puntos = {equipo: 0 for equipo in equipos}
+    # Abrimos (o creamos) el archivo .srt para escribir
+    with open(archivo_salida, "w", encoding="utf-8") as archivo:
+        for i, segmento in enumerate(segmentos, start=1):
+            inicio = formato_srt_tiempo(segmento["start"])
+            fin = formato_srt_tiempo(segmento["end"])
+            texto = segmento["text"].strip()
             
-            # Generar partidos del grupo
-            for i in range(len(equipos)):
-                for j in range(i + 1, len(equipos)):
-                    local, visita = equipos[i], equipos[j]
-                    
-                    # Selector visual en lugar de input()
-                    res = st.radio(
-                        f"Resultado: {local} vs {visita}",
-                        ["Pendiente", local, visita, "Empate"],
-                        key=f"{nombre_zona}_{local}_{visita}"
-                    )
-                    
-                    if res == local: puntos[local] += 3
-                    elif res == visita: puntos[visita] += 3
-                    elif res == "Empate":
-                        puntos[local] += 1
-                        puntos[visita] += 1
-            
-            # Tabla de posiciones automática
-            tabla = sorted(puntos.items(), key=lambda x: x[1], reverse=True)
-            st.write("**Posiciones Temporales:**")
-            for pos, (equipo, pts) in enumerate(tabla, 1):
-                st.text(f"{pos}. {equipo}: {pts} pts")
-            
-            clasificados_finales[nombre_zona] = [tabla[0][0], tabla[1][0]]
+            # Formato estándar de un bloque SRT
+            bloque_srt = f"{i}\n{inicio} --> {fin}\n{texto}\n\n"
+            archivo.write(bloque_srt)
 
-    # Botón final para ver todos los clasificados
-    if st.button("Generar Resumen de Clasificados"):
-        st.header("🏆 Equipos en Octavos")
-        for grupo, clasificados in clasificados_finales.items():
-            st.write(f"**{grupo}:** {clasificados[0]} y {clasificados[1]}")
+    # Limpieza: elimina el archivo de audio temporal
+    if os.path.exists(ruta_audio_temporal):
+        os.remove(ruta_audio_temporal)
+
+    return f"¡Listo! Subtítulos guardados exitosamente en: {archivo_salida}"
+
+# --- Ejecución ---
+if __name__ == "__main__":
+    # RECUERDA: Cambia el nombre de este archivo por tu video real
+    archivo_video = "mi_video.mp4"  
+    archivo_subtitulos = "mis_subtitulos.srt" 
+    
+    if os.path.exists(archivo_video):
+        mensaje = video_a_srt(archivo_video, archivo_salida=archivo_subtitulos)
+        print("\n" + mensaje)
+    else:
+        print(f"Error: No se encontró el archivo de video '{archivo_video}'. Asegúrate de que esté en la misma carpeta que este script.")
